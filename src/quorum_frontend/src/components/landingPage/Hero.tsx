@@ -1,11 +1,9 @@
 import { FaArrowRight } from "react-icons/fa";
 
 function Hero() {
-  return (
-    <section className='h-screen relative flex justify-center items-center overflow-hidden bg-gradient-to-t from-[#0a0a0a] to-transparent to-80%'>
-      
+	return (
+		<section className='h-screen relative flex justify-center items-center overflow-hidden bg-gradient-to-t from-[#0C0512] to-transparent to-80%'>
 			<div className='fixed -z-10 left-0 top-0 w-full h-screen'>
-				
 				{/* <img
 					src='https://framerusercontent.com/images/DSdxX3sp4OSZomF491zszwZzh9g.svg'
 					alt=''
@@ -21,47 +19,41 @@ function Hero() {
 					className='absolute bottom-0 left-0 w-full '
 				/> */}
 
-          <img src="/Images/lines.svg" alt="" className="absolute top-0 left-0 w-full md:w-[150%] h-full" />
-      </div>
-      
-			<div className='hero--gradient h-full w-full absolute top-0 left-0' />
+				<div className='rounded-tr-full rounded-bl-full rounded-tl-full rounded-br-4xl rotate-90 left-36 w-[250px] h-[250px] bg-purple-500 blur-xl absolute top-24 opacity-10' />
+				<div className='rounded-tr-full rounded-bl-full rounded-tl-full rounded-br-4xl right-36 w-[250px] h-[250px] bg-red-500 blur-xl absolute top-96 opacity-10' />
+
+				<img
+					src='/Images/lines.svg'
+					alt=''
+					className='absolute top-0 left-0 w-full md:w-[150%] h-full'
+				/>
+			</div>
 
 			<div className='z-10 text-center relative bottom-4'>
-		
-				<h1 className='font-grotesk text-[3.6rem]  leading-[4.7rem] text-gray-200'>
-					Unifying Personal Authentication
-					<br /> with Smart Verification{" "}
-					<img
-						src='/touchid.svg'
-						alt=''
-						width={1}
-						height={1}
-						className='inline-block w-12 h-12 invert brightness-125'
-					/>
+				<h1 className='md:text-7xl text-5xl lg:text-[7rem] font-bold lg:leading-[6rem] md:mb-10 text-gray-200'>
+					On-chain solutions
+					<br /> for{" "}
+					<span className='hero--span'>smarter organizations</span>
 				</h1>
-				<p className=' text-gray-300 mt-3 leading-6 text-[1rem]'>
-					Experience seamless authentication through our unified platform,
-					where verification becomes <br /> instant and your digital
-					identity works everywhere you need it.
+				<p className=' text-gray-300 mt-3 md:leading-6 text-sm md:text-2xl'>
+					Empower your organization with the next level of
+					transparency, <br className='hidden md:block' />
+					decision-making, and control-all on the blockchain.
 				</p>
 				<div className='flex items-center justify-center gap-6 mt-10'>
-					<button className='bg-[#cae88b]  px-[1.6rem] py-3  text-gray-800 text-[1.1rem] rounded-[.5rem] flex gap-1 items-center'>
+					<button className='bg-gradient-to-r from-[#6C49C4] to-[#681ee0] px-3 md:px-6 py-1 md:py-3 text-blue-50 md:font-semibold text-sm md:text-xl rounded-full flex gap-1 items-center'>
 						Get Started
 						<span className=' rounded-full p-1 h-7 w-7 flex justify-center items-center'>
 							<FaArrowRight
-								color='#000'
+								color='#fff'
 								className='w-full'
 							/>
 						</span>
 					</button>
-					<button className='bg-[#262626] text-[#cae88b]  px-[1.6rem] py-3 text-[1.1rem] rounded-[.5rem] flex gap-3 items-center'>
-						Learn more
-					</button>
 				</div>
 			</div>
-			
 		</section>
-    )
+	);
 }
 
 export default Hero;
