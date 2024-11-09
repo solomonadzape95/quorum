@@ -4,7 +4,7 @@ function Hero() {
   return (
     <section className='h-screen relative flex justify-center items-center overflow-hidden bg-gradient-to-t from-[#0a0a0a] to-transparent to-80%'>
       
-			<div className='absolute left-0 top-0 w-full h-screen'>
+			<div className='fixed -z-10 left-0 top-0 w-full h-screen'>
 				
 				{/* <img
 					src='https://framerusercontent.com/images/DSdxX3sp4OSZomF491zszwZzh9g.svg'
@@ -59,75 +59,7 @@ function Hero() {
 					</button>
 				</div>
 			</div>
-			<div className='tag-list absolute bottom-5 left-1/2 -translate-x-1/2 '>
-				<h2 className='text-center font-grotesk'>Our top Features</h2>
-				{/* <div className='loop-slider'>
-					<div className='inner'>
-						<div className='tag'>
-							<span>
-								<ScanFace color='#e8e8e8' />
-							</span>
-							Identity Verifciation
-						</div>
-						<div className='tag'>
-							<span>
-								<Fingerprint color='#e8e8e8' />
-							</span>{" "}
-							Biometric Authentication
-						</div>
-						<div className='tag'>
-							<span>
-								<Shield color='#e8e8e8' />
-							</span>{" "}
-							Privacy Controls
-						</div>
-						<div className='tag'>
-							<span>
-								<Key color='#e8e8e8' />
-							</span>{" "}
-							Access Management
-						</div>
-						<div className='tag'>
-							<span>
-								<Cable color='#e8e8e8' />
-							</span>{" "}
-							Cross-Platform Integration
-						</div>
-
-						<div className='tag'>
-							<span>
-								<ScanFace color='#e8e8e8' />
-							</span>
-							Identity Verifciation
-						</div>
-						<div className='tag'>
-							<span>
-								<Fingerprint color='#e8e8e8' />
-							</span>{" "}
-							Biometric Authentication
-						</div>
-						<div className='tag'>
-							<span>
-								<Shield color='#e8e8e8' />
-							</span>{" "}
-							Privacy Controls
-						</div>
-						<div className='tag'>
-							<span>
-								<Key color='#e8e8e8' />
-							</span>{" "}
-							Access Management
-						</div>
-						<div className='tag'>
-							<span>
-								<Cable color='#e8e8e8' />
-							</span>{" "}
-							Cross-Platform Integration
-						</div>
-					</div>
-				</div> */}
-				<div className='fade'></div>
-			</div>
+			
 		</section>
     )
 }
