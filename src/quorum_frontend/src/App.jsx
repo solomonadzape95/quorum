@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { quorum_backend } from 'declarations/quorum_backend';
+import Header from './components/landingPage/Header';
 
 function App() {
   const [greeting, setGreeting] = useState('');
@@ -14,9 +15,14 @@ function App() {
   }
 
   return (
-    <main className='w-full h-screen flex items-center justify-center'>
-        <button className='rounded-full bg-blue-500 p-2 text-white  text-sm
-        '>Click me</button>
+    <main className='w-full'>
+        <Header/>
+        <main className="w-full">
+            <section className="py-12 w-full max-h-[80vh] overflow-hidden bg-black">
+                <img src="/Images/lines.svg" alt="lines" className='w-full h-full' />
+                <h1></h1>
+            </section>
+        </main>
     </main>
   );
 }
