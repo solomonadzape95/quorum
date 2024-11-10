@@ -25,6 +25,7 @@ import {
   UserPlus,
   Loader2,
 } from "lucide-react";
+// import { Modal } from "@/components/ui/modal";
 
 interface Organization {
   id: number;
@@ -74,11 +75,46 @@ const discoverableOrganizations: Organization[] = [
   },
 ];
 
+interface ModalComponentProps {
+  isOpen: boolean;
+  onClose: () => void;
+}
+
+const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen, onClose }) => {
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        onClose();
+      }
+    };
+
+    if (isOpen) {
+      window.addEventListener("keydown", handleKeyDown);
+    }
+
+    return () => {
+      window.removeEventListener("keydown", handleKeyDown);
+    };
+  }, [isOpen, onClose]);
+
+  if (!isOpen) return null;
+
+  return (
+    <div className="modal-overlay">
+      <div className="modal-content">
+        <button onClick={onClose}>Close</button>
+        <h2>Create Organization</h2>
+      </div>
+    </div>
+  );
+};
+
 export default function OrganizationsPage() {
   const [organizations, setOrganizations] =
     useState<Organization[]>(initialOrganizations);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState<boolean>(false);
   const [discoveredOrgs, setDiscoveredOrgs] = useState<Organization[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
 
   // Enable dark mode
   useEffect(() => {
@@ -236,7 +272,12 @@ export default function OrganizationsPage() {
                 </CardDescription>
               </CardHeader>
               <CardContent className="flex flex-col sm:flex-row gap-4">
-                <Button className="flex-1 bg-purple-500 hover:bg-purple-600 text-white">
+                <Button
+                  className="flex-1 bg-purple-500 hover:bg-purple-600 text-white"
+                  onClick={() => {
+                    setIsModalOpen(true);
+                  }}
+                >
                   <Plus className="mr-2 h-4 w-4" /> Create Organization
                 </Button>
                 <Button className="flex-1 bg-purple-500 hover:bg-purple-600 text-white">
@@ -280,6 +321,10 @@ export default function OrganizationsPage() {
           </Card>
         </div>
       </div>
+      <ModalComponent
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+      />
     </div>
   );
 }

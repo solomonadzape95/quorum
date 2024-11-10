@@ -10,10 +10,30 @@ import UserGovernancePage from "./components/user-governace";
 import Dashboard from "./pages/Dashboard";
 import LandingPage from "./pages/LandingPage";
 import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import OrganizationCreationForm from "./components/forms/organizations";
+import ProposalCreationForm from "./components/forms/proposal";
+import ElectionCreationForm from "./components/forms/elections";
+import ProfileCreationForm from "./components/forms/profile";
 const router = createBrowserRouter([
   {
     path: "/",
     element: <LandingPage />,
+  },
+  {
+    path: "/createo",
+    element: <OrganizationCreationForm />,
+  },
+  {
+    path: "/createu",
+    element: <ProfileCreationForm />,
+  },
+  {
+    path: "/createe",
+    element: <ElectionCreationForm />,
+  },
+  {
+    path: "/createp",
+    element: <ProposalCreationForm />,
   },
   {
     path: "/dashboard",
