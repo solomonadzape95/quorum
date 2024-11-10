@@ -15,10 +15,9 @@ body {
 }
 
 .gradient--border {
-	border: 1px solid;
+	border: 2px groove;
 	border-image-source: linear-gradient(to top, #681ee0, #fa93fa, transparent);
-	border-image-slice: 1;
-	border-radius: 1rem;
+	border-image-slice: 40;
 }
 
 .hero--span {
