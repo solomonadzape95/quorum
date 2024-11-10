@@ -30,7 +30,7 @@ interface Team {
 }
 export function TeamSwitcher({ teams, user }: { teams: Team[]; user: User }) {
   const { isMobile } = useSidebar();
-  const [activeTeam, setActiveTeam] = React.useState<User | Team>(teams[0]);
+  const [activeTeam, setActiveTeam] = React.useState<User | Team>(user);
   const context = useAppContext();
   if (!context) return null;
   const { globals, updateView } = context;
@@ -45,7 +45,7 @@ export function TeamSwitcher({ teams, user }: { teams: Team[]; user: User }) {
           <DropdownMenuTrigger asChild>
             <SidebarMenuButton
               size="lg"
-              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
+              className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground "
             >
               {"email" in activeTeam ? (
                 <>
@@ -87,7 +87,7 @@ export function TeamSwitcher({ teams, user }: { teams: Team[]; user: User }) {
             </SidebarMenuButton>
           </DropdownMenuTrigger>
           <DropdownMenuContent
-            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg"
+            className="w-[--radix-dropdown-menu-trigger-width] min-w-56 rounded-lg bg-black"
             align="start"
             side={isMobile ? "bottom" : "right"}
             sideOffset={4}
