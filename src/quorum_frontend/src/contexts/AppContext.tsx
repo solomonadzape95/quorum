@@ -19,6 +19,7 @@ interface AppContextType {
 	updateView: (view: "user" | "org", teamId: string) => void;
 	login: () => Promise<void>;
 	logout: () => Promise<void>;
+	authClient: AuthClient | null;
 }
 
 export const AppContext = createContext<AppContextType | null>(null);
@@ -80,7 +81,8 @@ export function ContextProvider({ children }: { children: ReactNode }) {
 	}
 
 	return (
-		<AppContext.Provider value={{ globals, updateView, login, logout }}>
+		<AppContext.Provider
+			value={{ globals, updateView, login, logout, authClient }}>
 			{children}
 		</AppContext.Provider>
 	);
