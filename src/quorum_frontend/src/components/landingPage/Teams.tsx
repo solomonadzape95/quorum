@@ -50,7 +50,7 @@ function TeamMemberCard({
 	image,
 }: TeamMemberCardProps) {
 	return (
-		<div className='gradient--border rounded-lg shadow-lg text-white w-full max-h-[500px] overflow-hidden relative'>
+		<div className='gradient--border rounded-lg shadow-lg text-white w-full max-h-[400px] overflow-hidden relative'>
 			<div className='w-full min-h-full'>
 				<img
 					src={image}
