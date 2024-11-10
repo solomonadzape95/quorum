@@ -15,78 +15,71 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 
 const router = createBrowserRouter([
-	{
-		path: "/",
-		element: <LandingPage />,
-	},
-	{
-		path: "/login",
-		element: <LoginPage />,
-	},
-	{
-		path: "/dashboard",
-		element: (
-			<ProtectedRoute>
-				<Dashboard />
-			</ProtectedRoute>
-		),
-		children: [
-			{
-				path: "overview",
-				element: <DashboardLayout />,
-			},
-			{
-				path: "organizations/:orgid",
-				element: <OrganizationOverview />,
-				children: [
-					{
-						path: "governance",
-						element: <OrgGovernancePage />,
-					},
-					{
-						path: "analytics",
-						element: <OrgAnalyticsPage />,
-					},
-					{
-						path: "members",
-						element: <OrgMembersPage />,
-					},
-				],
-			},
+  {
+    path: "/",
+    element: <LandingPage />,
+  },
+  {
+    path: "/login",
+    element: <LoginPage />,
+  },
+  {
+    path: "/dashboard",
+    element: (
+      <ProtectedRoute>
+        <Dashboard />
+      </ProtectedRoute>
+    ),
+    children: [
+      {
+        path: "overview",
+        element: <DashboardLayout />,
+      },
+      {
+        path: "organizations/:orgid",
+        element: <OrganizationOverview />,
+        children: [
+          {
+            path: "governance",
+            element: <OrgGovernancePage />,
+          },
+          {
+            path: "analytics",
+            element: <OrgAnalyticsPage />,
+          },
+          {
+            path: "members",
+            element: <OrgMembersPage />,
+          },
+        ],
+      },
+      {
+        path: "organizations",
+        element: <OrganizationsPage />,
+      },
+      {
+        path: "governance",
+        element: <UserGovernancePage />,
+      },
+      {
+        path: "analytics",
+        element: <UserAnalyticsPage />,
+      },
+      {
+        path: "calendar",
+        element: <UserCalendarPage />,
+      },
+    ],
+  },
 
-			{
-				path: "user/:userid",
-				element: <UserOverview />,
-				children: [
-					{
-						path: "orgs",
-						element: <OrganizationsPage />,
-					},
-					{
-						path: "gov",
-						element: <UserGovernancePage />,
-					},
-					{
-						path: "stats",
-						element: <UserAnalyticsPage />,
-					},
-					{
-						path: "calendar",
-						element: <UserCalendarPage />,
-					},
-				],
-			},
-		],
-	},
-
-	{
-		element: <div>404</div>,
-		path: "*",
-	},
+  {
+    element: <div>404</div>,
+    path: "*",
+  },
 ]);
 
 function App() {
-	return <RouterProvider router={router} />;
+  return <RouterProvider router={router} />;
 }
 
 export default App;

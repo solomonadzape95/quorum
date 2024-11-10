@@ -342,7 +342,6 @@ export default function ElectionCreationForm() {
                             date ? format(date, "yyyy-MM-dd") : ""
                           );
                         }}
-                        initialFocus
                       />
                     </PopoverContent>
                   </Popover>
@@ -391,7 +390,6 @@ export default function ElectionCreationForm() {
                             date ? format(date, "yyyy-MM-dd") : ""
                           );
                         }}
-                        initialFocus
                       />
                     </PopoverContent>
                   </Popover>

@@ -44,7 +44,7 @@ export default function ProposalCreationForm() {
 
   const handleInputChange = (
     e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
-    index = null
+    index: any
   ) => {
     const { name, value } = e.target;
     if (index !== null) {
@@ -186,7 +186,7 @@ export default function ProposalCreationForm() {
                     id="name"
                     name="name"
                     value={formData.name}
-                    onChange={handleInputChange}
+                    onChange={(e) => handleInputChange(e, null)}
                     className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
                     placeholder="Enter proposal name"
                   />
@@ -202,7 +202,7 @@ export default function ProposalCreationForm() {
                     id="description"
                     name="description"
                     value={formData.description}
-                    onChange={handleInputChange}
+                    onChange={(e) => handleInputChange(e, null)}
                     className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
                     placeholder="Enter proposal description"
                   />
@@ -225,7 +225,7 @@ export default function ProposalCreationForm() {
                     >
                       <Input
                         value={option.value}
-                        onChange={(e) => handleInputChange(e, index as number)}
+                        onChange={(e) => handleInputChange(e, index)}
                         className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
                         placeholder={`Option ${index + 1}`}
                       />
