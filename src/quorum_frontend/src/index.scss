@@ -1,17 +1,30 @@
 @import url("https://fonts.googleapis.com/css2?family=Poppins&family=Manrope:wght@200..800&family=Space+Grotesk:wght@300..700&display=swap");
 
 @tailwind base;
-@tailwind utilities;
 @tailwind components;
+@tailwind utilities;
 
 body {
-	font-family: "Poppins", sans-serif;
-	font-size: 1.5rem;
-	background: #0c0512;
+  font-family: "Poppins", sans-serif;
+  font-size: 1.5rem;
+  background: #0c0512;
 }
 
-:root {
-	--gradient: linear-gradient(to top, #681ee0, #fa93fa);
+@layer base {
+  :root {
+    --background: #333;
+    --foreground: 0 0% 98%;
+    --border: 240 3.7% 15.9%;
+    --gradient: linear-gradient(to top, #681ee0, #fa93fa);
+    --sidebar-background: 240 5.9% 10%;
+    --sidebar-foreground: 240 4.8% 95.9%;
+    --sidebar-primary: 224.3 76.3% 48%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 240 3.7% 15.9%;
+    --sidebar-accent-foreground: 240 4.8% 95.9%;
+    --sidebar-border: 240 3.7% 15.9%;
+    --sidebar-ring: 217.2 91.2% 59.8%;
+  }
 }
 
 .gradient--border {
@@ -21,8 +34,16 @@ body {
 }
 
 .hero--span {
-	background: linear-gradient(to top, #681ee0, #fa93fa);
-	background-clip: text;
-	-webkit-background-clip: text;
-	-webkit-text-fill-color: transparent;
+  background: linear-gradient(to top, #681ee0, #fa93fa);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+@layer base {
+  * {
+    @apply border-border;
+  }
+  body {
+    @apply bg-background text-foreground;
+  }
 }
