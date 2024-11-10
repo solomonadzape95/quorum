@@ -1,6 +1,9 @@
 import { FaArrowRight } from "react-icons/fa";
+import { useNavigate } from "react-router-dom";
 
 function Hero() {
+	const navigate = useNavigate();
+
 	return (
 		<section className='h-screen relative flex justify-center items-center overflow-hidden bg-gradient-to-t from-[#0C0512] to-transparent to-80%'>
 			<div className='fixed -z-10 left-0 top-0 w-full h-screen'>
@@ -41,7 +44,9 @@ function Hero() {
 					decision-making, and control-all on the blockchain.
 				</p>
 				<div className='flex items-center justify-center gap-6 mt-10'>
-					<button className='bg-gradient-to-r from-[#6C49C4] to-[#681ee0] px-3 md:px-6 py-1 md:py-3 text-blue-50 md:font-semibold text-sm md:text-xl rounded-full flex gap-1 items-center'>
+					<button
+						onClick={() => navigate("/login", { replace: true })}
+						className='bg-gradient-to-r from-[#6C49C4] to-[#681ee0] px-3 md:px-6 py-1 md:py-3 text-blue-50 md:font-semibold text-sm md:text-xl rounded-full flex gap-1 items-center'>
 						Get Started
 						<span className=' rounded-full p-1 h-7 w-7 flex justify-center items-center'>
 							<FaArrowRight
