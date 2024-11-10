@@ -37,8 +37,8 @@ interface Candidate {
 interface FormData {
   name: string;
   description: string;
-  startDate: Date | "";
-  endDate: Date | "";
+  startDate: Date | null | "";
+  endDate: Date | null | "";
   candidates: Candidate[];
 }
 
@@ -467,11 +467,12 @@ export default function ElectionCreationForm() {
                         <div className="flex items-center space-x-4">
                           <Button
                             type="button"
-                            onClick={() =>
-                              document
-                                .getElementById(`profilePicture-${index}`)
-                                .click()
-                            }
+                            onClick={() => {
+                              const input = document.getElementById(
+                                `profilePicture-${index}`
+                              );
+                              if (input) input.click();
+                            }}
                             className="bg-purple-500 hover:bg-purple-600 text-white"
                           >
                             <Upload className="mr-2 h-4 w-4" /> Upload Image
@@ -597,7 +598,6 @@ export default function ElectionCreationForm() {
           ) : (
             <Button
               type="submit"
-              onClick={handleSubmit}
               disabled={!isStepValid()}
               className="bg-purple-500 hover:bg-purple-600 text-white"
             >
