@@ -29,7 +29,7 @@ function Hero() {
 				/>
 			</div>
 
-			<div className='z-10 text-center relative bottom-4'>
+			<div className='z-10 text-center relative bottom-4 px-4 md:px-0'>
 				<h1 className='md:text-7xl text-5xl lg:text-[5rem] font-bold lg:leading-[6rem] md:mb-10 text-gray-200'>
 					On-chain solutions
 					<br /> for{" "}

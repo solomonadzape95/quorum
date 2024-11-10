@@ -33,20 +33,23 @@ const data = {
 	user: {
 		name: "Gloria Madubueze",
 		email: "gloriaim@nacos.org",
-		avatar: "/images/gim.jpg",
+		avatar: "/Images/gim.jpg",
 	},
 	organizations: [
 		{
+			id: "1",
 			name: "Acme Inc",
 			logo: GalleryVerticalEnd,
 			plan: "Enterprise",
 		},
 		{
+			id: "2",
 			name: "Acme Corp.",
 			logo: AudioWaveform,
 			plan: "Startup",
 		},
 		{
+			id: "3",
 			name: "Evil Corp.",
 			logo: Command,
 			plan: "Free",
@@ -55,7 +58,7 @@ const data = {
 	navUser: [
 		{
 			title: "Overview",
-			url: "/dashboard",
+			url: "/dashboard/overview",
 			icon: LayoutDashboard,
 			isActive: true,
 		},
@@ -71,45 +74,45 @@ const data = {
 		},
 		{
 			title: "Analytics",
-			url: "/dashboard/analytics",
+			url: "/analytics",
 			icon: LineChart,
 		},
 		{
 			title: "Calendar",
-			url: "/dashboard/calendar",
+			url: "/calendar",
 			icon: Calendar,
 		},
 	],
 	navOrgs: [
 		{
 			title: "Overview",
-			url: "/dashboard",
+			url: "/dashboard/overview",
 			icon: LayoutDashboard,
 			isActive: true,
 		},
 		{
 			title: "Governance",
-			url: "/dashboard/governance",
+			url: "/governance",
 			icon: Vote,
 		},
 		{
 			title: "Analytics",
-			url: "/dashboard/analytics",
+			url: "/analytics",
 			icon: LineChart,
 		},
 		{
 			title: "Members",
-			url: "/dashboard/members",
+			url: "/members",
 			icon: Users,
 		},
 		{
 			title: "Treasury",
-			url: "/dashboard/treasury",
+			url: "/treasury",
 			icon: Wallet,
 		},
 		{
 			title: "Calendar",
-			url: "/dashboard/calendar",
+			url: "/calendar",
 			icon: Calendar,
 		},
 	],
@@ -129,6 +132,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 					user={data.user}
 				/>
 			</SidebarHeader>
+
 			<SidebarContent>
 				<NavMain
 					items={
