@@ -14,33 +14,37 @@ import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 
-import OrganizationCreationForm from "./components/forms/organizations";
-import ProposalCreationForm from "./components/forms/proposal";
-import ElectionCreationForm from "./components/forms/elections";
-import ProfileCreationForm from "./components/forms/profile";
 const router = createBrowserRouter([
 	{
 		path: "/",
 		element: <LandingPage />,
 	},
 	{
+		path: "/login",
+		element: <LoginPage />,
+	},
+	{
 		path: "/dashboard",
-		element: <Dashboard />,
+		element: (
+			<ProtectedRoute>
+				<Dashboard />
+			</ProtectedRoute>
+		),
 		children: [
 			{
-				path: "",
-				element: <DashboardOverview />,
+				path: "overview",
+				element: <DashboardLayout />,
 			},
 			{
-				path: "org/:orgid",
-				element: <OrganizationDetails />,
+				path: "organizations/:orgid",
+				element: <OrganizationOverview />,
 				children: [
 					{
-						path: "gov",
+						path: "governance",
 						element: <OrgGovernancePage />,
 					},
 					{
-						path: "stats",
+						path: "analytics",
 						element: <OrgAnalyticsPage />,
 					},
 					{
