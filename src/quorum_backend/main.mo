@@ -245,4 +245,94 @@ actor {
     };
 };
 
+
+    public func joinOrgan(walletAddress: Text, newOrgan: Text): async Bool 
+    {
+        switch (users.get(walletAddress)) {
+            case (?User) {
+                // Create a new User record with updated organizations
+                let updatedUser = {
+                    username = User.username;
+                    displayName = User.displayName;
+                    walletAddress = User.walletAddress;
+                    organizations = Array.append(User.organizations, [newOrgan]);  // Append new organization
+                    elections = User.elections;
+                };
+                users.put(walletAddress, updatedUser);
+                return true;
+            };
+            case null { return false; }  // User not found
+        };
+    };
+    public func addMember(name: Text, walletAddress: Text): async Bool 
+    {
+        switch (organiMap.get(name)) {
+            case (?Organization) {
+                // Create a new User record with updated organizations
+                let updatedOrgan = {
+                    name = Organization.name;
+                    isPublic = Organization.isPublic;
+                    description = Organization.description;
+                    members = Array.append(Organization.members, [walletAddress]);
+                    electionConducted = Organization.electionConducted;
+                };
+                organiMap.put(name, updatedOrgan);
+                return true;
+            };
+            case null { return false; };  // User not found
+        };
+    };
+
+    // public func remMember(name: Text, walletAddress: Text) : async Bool
+    // {
+
+    // }
+    public func leaveOrgan(walletAddress: Text, organName: Text): async Bool 
+    {
+      switch (users.get(walletAddress)) {
+          case (?existingUser) {
+              // Filter out the organization to be removed
+              let updatedOrgan = Array.filter(existingUser.organizations, func(org: Text):Bool {
+                  org != organName
+              });
+
+              // Create a new user record with the updated organizations
+              let updatedUser = {
+                  username = existingUser.username;
+                  displayName = existingUser.displayName;
+                  walletAddress = existingUser.walletAddress;
+                  organizations = updatedOrgan;
+                  elections = existingUser.elections;
+              };
+
+              // Update the user in the HashMap
+              users.put(walletAddress, updatedUser);
+              return true;
+          };
+          case null { return false; };
+      };
+    };
+    public func remMember(name: Text, walletAddress: Text): async Bool
+    {
+      switch(organiMap.get(name))
+      {
+        case(?existingOrgan){
+          let updatedUser = Array.filter(existingOrgan.members, func(use: Text): Bool
+          {
+            use != walletAddress
+          });
+          let updatedOrgan = {
+            name =existingOrgan.name;
+            isPublic = existingOrgan.isPublic;
+            description = existingOrgan.description;
+            members = updatedUser;
+            electionConducted = existingOrgan.electionConducted;
+          };
+          organiMap.put(name, updatedOrgan);
+          return true;
+        };
+        case null {return false; };
+      };
+    };
+
 };
