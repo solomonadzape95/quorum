@@ -25,7 +25,8 @@ import {
   UserPlus,
   Loader2,
 } from "lucide-react";
-// import { Modal } from "@/components/ui/modal";
+import OrganizationCreationForm from "@/components/forms/organizations";
+// import { quorum_backend } from "../declarations/quorum_backend/index.js";
 
 interface Organization {
   id: number;
@@ -80,34 +81,35 @@ interface ModalComponentProps {
   onClose: () => void;
 }
 
-const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen, onClose }) => {
-  useEffect(() => {
-    const handleKeyDown = (event: KeyboardEvent) => {
-      if (event.key === "Escape") {
-        onClose();
-      }
-    };
+// const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen, onClose }) => {
+//   const handleCreateOrg = async (name: string, description: string) => {
+//     try {
+//       await quorum_backend.create_organization({
+//         name: name,
+//         description: [description],
+//         members: [],
+//         proposals: [],
+//       });
+//       onClose();
+//       window.location.reload();
+//     } catch (error) {
+//       console.error("Failed to create organization:", error);
+//     }
+//   };
 
-    if (isOpen) {
-      window.addEventListener("keydown", handleKeyDown);
-    }
+//   if (!isOpen) return null;
 
-    return () => {
-      window.removeEventListener("keydown", handleKeyDown);
-    };
-  }, [isOpen, onClose]);
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="modal-overlay">
-      <div className="modal-content">
-        <button onClick={onClose}>Close</button>
-        <h2>Create Organization</h2>
-      </div>
-    </div>
-  );
-};
+//   return (
+//     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
+//       <div className="bg-[#1a1625] rounded-lg p-6 w-full max-w-md border border-purple-500/20">
+//         <OrganizationCreationForm
+//           onSubmit={handleCreateOrg}
+//           onClose={onClose}
+//         />
+//       </div>
+//     </div>
+//   );
+// };
 
 export default function OrganizationsPage() {
   const [organizations, setOrganizations] =
@@ -252,6 +254,17 @@ export default function OrganizationsPage() {
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-500 bg-clip-text text-transparent">
               Your Organizations
             </h1>
+            <div className="flex gap-4">
+              <Button
+                className="bg-purple-500 hover:bg-purple-600 text-white"
+                onClick={() => setIsModalOpen(true)}
+              >
+                <Plus className="mr-2 h-4 w-4" /> Create Organization
+              </Button>
+              <Button className="bg-purple-500 hover:bg-purple-600 text-white">
+                <UserPlus className="mr-2 h-4 w-4" /> Join Organization
+              </Button>
+            </div>
           </header>
 
           {organizations.length > 0 ? (
@@ -271,19 +284,6 @@ export default function OrganizationsPage() {
                   to get started!
                 </CardDescription>
               </CardHeader>
-              <CardContent className="flex flex-col sm:flex-row gap-4">
-                <Button
-                  className="flex-1 bg-purple-500 hover:bg-purple-600 text-white"
-                  onClick={() => {
-                    setIsModalOpen(true);
-                  }}
-                >
-                  <Plus className="mr-2 h-4 w-4" /> Create Organization
-                </Button>
-                <Button className="flex-1 bg-purple-500 hover:bg-purple-600 text-white">
-                  <UserPlus className="mr-2 h-4 w-4" /> Join Organization
-                </Button>
-              </CardContent>
             </Card>
           )}
 
@@ -321,10 +321,10 @@ export default function OrganizationsPage() {
           </Card>
         </div>
       </div>
-      <ModalComponent
+      {/* <ModalComponent
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-      />
+      /> */}
     </div>
   );
 }

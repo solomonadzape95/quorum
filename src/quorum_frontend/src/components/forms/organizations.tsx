@@ -31,7 +31,13 @@ interface FormErrs {
   privacy?: "public";
   admins?: string;
 }
-export default function OrganizationCreationForm() {
+export default function OrganizationCreationForm({
+  onSubmit,
+  onClose,
+}: {
+  onSubmit: (name: string, description: string) => void;
+  onClose: () => void;
+}) {
   const [step, setStep] = useState(1);
   const [formData, setFormData] = useState({
     name: "",

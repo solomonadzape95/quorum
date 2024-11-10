@@ -139,7 +139,7 @@ export default function UserGovernancePage() {
         <div className="container mx-auto p-8 space-y-8">
           <header className="flex justify-between items-center mb-8">
             <h1 className="text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-500 bg-clip-text text-transparent">
-              Your Governance Dashboard
+              My Governance
             </h1>
           </header>
 

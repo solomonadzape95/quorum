@@ -38,7 +38,7 @@ const router = createBrowserRouter([
 		children: [
 			{
 				path: "overview",
-				element: <DashboardLayout />,
+				element: <UserOverview />,
 			},
 			{
 				path: "organizations/:orgid",
@@ -84,14 +84,14 @@ const router = createBrowserRouter([
 		],
 	},
 
-	{
-		element: <div>404</div>,
-		path: "*",
-	},
+  {
+    element: <div>404</div>,
+    path: "*",
+  },
 ]);
 
 function App() {
-	return <RouterProvider router={router} />;
+  return <RouterProvider router={router} />;
 }
 
 export default App;
