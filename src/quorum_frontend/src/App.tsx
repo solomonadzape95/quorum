@@ -13,64 +13,76 @@ import { createBrowserRouter, RouterProvider } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
+import Onboarding from "./components/Onboarding";
 
 const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <LandingPage />,
-  },
-  {
-    path: "/login",
-    element: <LoginPage />,
-  },
-  {
-    path: "/dashboard",
-    element: (
-      <ProtectedRoute>
-        <Dashboard />
-      </ProtectedRoute>
-    ),
-    children: [
-      {
-        path: "overview",
-        element: <DashboardLayout />,
-      },
-      {
-        path: "organizations/:orgid",
-        element: <OrganizationOverview />,
-        children: [
-          {
-            path: "governance",
-            element: <OrgGovernancePage />,
-          },
-          {
-            path: "analytics",
-            element: <OrgAnalyticsPage />,
-          },
-          {
-            path: "members",
-            element: <OrgMembersPage />,
-          },
-        ],
-      },
-      {
-        path: "organizations",
-        element: <OrganizationsPage />,
-      },
-      {
-        path: "governance",
-        element: <UserGovernancePage />,
-      },
-      {
-        path: "analytics",
-        element: <UserAnalyticsPage />,
-      },
-      {
-        path: "calendar",
-        element: <UserCalendarPage />,
-      },
-    ],
-  },
+	{
+		path: "/",
+		element: <LandingPage />,
+	},
+	{
+		path: "/login",
+		element: <LoginPage />,
+	},
+	{
+		path: "/onboarding",
+		element: <Onboarding />,
+	},
+	{
+		path: "/dashboard",
+		element: (
+			<ProtectedRoute>
+				<Dashboard />
+			</ProtectedRoute>
+		),
+		children: [
+			{
+				path: "overview",
+				element: <UserOverview />,
+			},
+			{
+				path: "organizations/:orgid",
+				element: <OrganizationOverview />,
+				children: [
+					{
+						path: "governance",
+						element: <OrgGovernancePage />,
+					},
+					{
+						path: "analytics",
+						element: <OrgAnalyticsPage />,
+					},
+					{
+						path: "members",
+						element: <OrgMembersPage />,
+					},
+				],
+			},
+
+			{
+				path: "user/:userid",
+				element: <UserOverview />,
+				children: [
+					{
+						path: "orgs",
+						element: <OrganizationsPage />,
+					},
+					{
+						path: "gov",
+						element: <UserGovernancePage />,
+					},
+					{
+						path: "stats",
+						element: <UserAnalyticsPage />,
+					},
+					{
+						path: "calendar",
+						element: <UserCalendarPage />,
+					},
+				],
+			},
+		],
+	},
 
   {
     element: <div>404</div>,
