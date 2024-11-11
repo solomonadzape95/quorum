@@ -1,5 +1,3 @@
-"use client";
-
 import {
 	BadgeCheck,
 	Bell,
@@ -89,8 +87,7 @@ export function NavUser({
 										{user?.displayName}
 									</span>
 									<span className='truncate text-xs'>
-										{user?.principalId?.slice(0, 6)}...
-									</span>
+										{user?.principalId?.slice(0, 6)}...</span>
 								</div>
 							</div>
 						</DropdownMenuLabel>

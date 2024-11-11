@@ -15,7 +15,7 @@ const teamMembers: TeamMember[] = [
 		name: "devtochukwu",
 		role: "Frontend Developer",
 		twitterHandle: "devtochukwu",
-		image: "/Images/team/devtochukwu.jpg",
+		image: "/Images/team/devtochukwu.png",
 	},
 	{
 		name: "Solomon",
@@ -36,7 +36,7 @@ const teamMembers: TeamMember[] = [
 		image: "/Images/team/kaycee.png",
 	},
 	{
-		name: "Kamsi Y. Ochi",
+		name: "Kamsi",
 		role: "Product Designer",
 		twitterHandle: "kamsiyochi51241",
 		image: "/Images/team/stephanie.png",
@@ -55,7 +55,7 @@ function TeamMemberCard({
 				<img
 					src={image}
 					alt={name}
-					className='w-full h-full object-cover'
+					className='w-full h-full object-contain aspect-square'
 				/>
 			</div>
 			<div className='bg-gradient-to-tr from-[#130E1C80] to-[#681EE060] backdrop-blur-md absolute bottom-0 left-0 w-full h-18 p-2 pl-4'>

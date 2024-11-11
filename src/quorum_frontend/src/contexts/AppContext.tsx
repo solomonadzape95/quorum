@@ -19,7 +19,7 @@ interface GlobalState {
 
 interface AppContextType {
 	globals: GlobalState;
-	updateView: (view: "user" | "org", teamId: string) => void;
+	updateView: (view: "user" | "org") => void;
 	login: () => Promise<void>;
 	logout: () => Promise<void>;
 	authClient: AuthClient | null;
@@ -81,14 +81,14 @@ export function ContextProvider({ children }: { children: ReactNode }) {
 	}
 
 	function updateView(view: "user" | "org", teamId: string) {
-		setGlobals((g) => ({ ...g, view, activeTeam: teamId }));
+		setGlobals((g) => ({ ...g, view}));
 		localStorage.setItem("view", view);
-		localStorage.setItem("activeTeam", teamId);
+		// localStorage.setItem("activeTeam", teamId);
 	}
 
 	return (
 		<AppContext.Provider
-			value={{ globals, updateView, login, logout, authClient }}>
+			value={{ globals, updateView: (view) => updateView(view, ""), login, logout, authClient }}>
 			{children}
 		</AppContext.Provider>
 	);

@@ -157,31 +157,22 @@ export default function OrganizationCreationForm({
         return;
       }
 
-      // Create new organization object
-      const newOrganization:Organization = {
-        id: `${crypto.randomUUID()}`,
-        name: formData.name,
-        handle: formData.handle,
-        description: formData.description,
-        isPublic: !formData.private,
-        members: adminsList.map(admin => ({
-          principalId: admin,
-          role: 'ADMIN',
-        })),
-        pfp: formData.profilePicture ? URL.createObjectURL(formData.profilePicture) : '',
-        electionConducted: [],
-      };
+      // Call the backend canister's addOrgan function
+      const success = await quorum_backend.addOrgan(
+        formData.name,           // name
+        !formData.private,       // isPublic
+        formData.description,    // description
+        adminsList,             // members (initially just admins)
+        [],                     // electionConducted (empty initially)
+        adminsList              // admins
+      );
 
-      // Send POST request to JSON server
-      const response = await organizationService.createOrganization(newOrganization)
-
-      if (!response) {
+      if (!success) {
         throw new Error('Failed to create organization');
       }
-
-      // Call the onSubmit callback with the created organization
-      const createdOrg =  response
-      onSubmit(createdOrg.name, createdOrg.description, adminsList);
+      console.log("Organization created successfully",success);
+      // Call the onSubmit callback with the created organization details
+      onSubmit(formData.name, formData.description, adminsList);
       onClose();
 
     } catch (error) {
@@ -219,215 +210,231 @@ export default function OrganizationCreationForm({
   };
 
   return (
-    <div className="bg-[#0F0B15] bg-grid-small-white/[0.2] relative flex items-center justify-center p-4">
-      <div className="absolute inset-0 bg-[#0F0B15]/80 pointer-events-none" />
-      <Card className="w-full max-w-2xl bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10 relative z-10">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center bg-gradient-to-r from-purple-600 to-fuchsia-500 bg-clip-text text-transparent">
-            Create Your Organization
-          </CardTitle>
+    <div className="fixed inset-0 z-50">
+      <div 
+        className="absolute inset-0 bg-black/50 cursor-pointer" 
+        onClick={onClose}
+      />
 
-          <CardDescription className="text-center text-purple-300">
-            Step {step} of 3
-          </CardDescription>
-          <Progress value={step * 33.33} className="w-full h-2 bg-red-500" />
-        </CardHeader>
+      <div className="bg-[#0F0B15] bg-grid-small-white/[0.2] relative flex items-center justify-center p-4 h-full">
+        <div className="absolute inset-0 bg-[#0F0B15]/80 pointer-events-none" />
+        <Card className="w-full max-w-2xl bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10 relative z-10">
+          <Button 
+            onClick={onClose}
+            variant="ghost" 
+            className="absolute right-4 top-4 p-0 w-8 h-8 hover:bg-purple-500/10"
+            aria-label="Close"
+          >
+            <X className="h-5 w-5 text-purple-300 hover:text-purple-100" />
+          </Button>
 
-        <CardContent>
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {step === 1 && (
-              <div className="space-y-4">
-                <div>
-                  <Label htmlFor="name" className="text-purple-100">
-                    Organization Name
-                  </Label>
-                  <Input
-                    id="name"
-                    name="name"
-                    value={formData.name}
-                    onChange={handleInputChange}
-                    className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
-                    placeholder="Enter organization name"
-                  />
-                  {errors.name && (
-                    <p className="text-red-400 text-sm mt-1">{errors.name}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="handle" className="text-purple-100">
-                    Handle
-                  </Label>
-                  <Input
-                    id="handle"
-                    name="handle"
-                    value={formData.handle}
-                    onChange={handleInputChange}
-                    className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
-                    placeholder="Enter organization handle"
-                  />
-                  {errors.handle && (
-                    <p className="text-red-400 text-sm mt-1">{errors.handle}</p>
-                  )}
-                </div>
-                <div>
-                  <Label htmlFor="profilePicture" className="text-purple-100">
-                    Profile Picture
-                  </Label>
-                  <div className="flex items-center space-x-4">
-                    <Button
-                      type="button"
-                      onClick={() =>
-                        document.getElementById("profilePicture")?.click()
-                      }
-                      className="bg-purple-500 hover:bg-purple-600 text-white"
-                    >
-                      <Upload className="mr-2 h-4 w-4" /> Upload Image
-                    </Button>
+          <CardHeader>
+            <CardTitle className="text-2xl text-center bg-gradient-to-r from-purple-600 to-fuchsia-500 bg-clip-text text-transparent">
+              Create Your Organization
+            </CardTitle>
+
+            <CardDescription className="text-center text-purple-300">
+              Step {step} of 3
+            </CardDescription>
+            <Progress value={step * 33.33} className="w-full h-2 bg-purple-500/20" />
+          </CardHeader>
+
+          <CardContent>
+            <form onSubmit={handleSubmit} className="space-y-6">
+              {step === 1 && (
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="name" className="text-purple-100">
+                      Organization Name
+                    </Label>
                     <Input
-                      id="profilePicture"
-                      name="profilePicture"
-                      type="file"
-                      accept="image/*"
-                      onChange={handleFileChange}
-                      className="hidden"
+                      id="name"
+                      name="name"
+                      value={formData.name}
+                      onChange={handleInputChange}
+                      className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
+                      placeholder="Enter organization name"
                     />
-                    {formData.profilePicture && (
-                      <p className="text-purple-300">
-                        {formData.profilePicture.name}
+                    {errors.name && (
+                      <p className="text-red-400 text-sm mt-1">{errors.name}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="handle" className="text-purple-100">
+                      Handle
+                    </Label>
+                    <Input
+                      id="handle"
+                      name="handle"
+                      value={formData.handle}
+                      onChange={handleInputChange}
+                      className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
+                      placeholder="Enter organization handle"
+                    />
+                    {errors.handle && (
+                      <p className="text-red-400 text-sm mt-1">{errors.handle}</p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="profilePicture" className="text-purple-100">
+                      Profile Picture
+                    </Label>
+                    <div className="flex items-center space-x-4">
+                      <Button
+                        type="button"
+                        onClick={() =>
+                          document.getElementById("profilePicture")?.click()
+                        }
+                        className="bg-purple-500 hover:bg-purple-600 text-white"
+                      >
+                        <Upload className="mr-2 h-4 w-4" /> Upload Image
+                      </Button>
+                      <Input
+                        id="profilePicture"
+                        name="profilePicture"
+                        type="file"
+                        accept="image/*"
+                        onChange={handleFileChange}
+                        className="hidden"
+                      />
+                      {formData.profilePicture && (
+                        <p className="text-purple-300">
+                          {formData.profilePicture.name}
+                        </p>
+                      )}
+                    </div>
+                    {errors.profilePicture && (
+                      <p className="text-red-400 text-sm mt-1">
+                        {errors.profilePicture}
                       </p>
                     )}
                   </div>
-                  {errors.profilePicture && (
-                    <p className="text-red-400 text-sm mt-1">
-                      {errors.profilePicture}
-                    </p>
+                </div>
+              )}
+
+              {step === 2 && (
+                <div className="space-y-4">
+                  <Label className="text-purple-100">Privacy Setting</Label>
+                  <RadioGroup
+                    name="private"
+                    value={formData.private ? "private" : "public"}
+                    onValueChange={(value: string) =>
+                      setFormData((prev) => ({ ...prev, private: value === "private" }))
+                    }
+                    className="flex flex-col space-y-2"
+                  >
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value="public"
+                        id="public"
+                        className="border-purple-500"
+                      />
+                      <Label htmlFor="public" className="text-purple-100">
+                        Public
+                      </Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="h-4 w-4 text-purple-400" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-purple-900 text-purple-100">
+                            <p>Anyone can view and join your organization</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem
+                        value="private"
+                        id="private"
+                        className="border-purple-500"
+                      />
+                      <Label htmlFor="private" className="text-purple-100">
+                        Private
+                      </Label>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger>
+                            <Info className="h-4 w-4 text-purple-400" />
+                          </TooltipTrigger>
+                          <TooltipContent className="bg-purple-900 text-purple-100">
+                            <p>Only invited members can view and join your organization</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </RadioGroup>
+                </div>
+              )}
+
+              {step === 3 && (
+                <div className="space-y-4">
+                  <Label htmlFor="admins" className="text-purple-100">
+                    Add Admins(Your username should be one of them)
+                  </Label>
+                  <Textarea
+                    id="admins"
+                    name="admins"
+                    value={formData.admins}
+                    onChange={handleInputChange}
+                    className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
+                    placeholder="Enter usernames separated by commas"
+                  />
+                  {errors.admins && (
+                    <p className="text-red-400 text-sm mt-1">{errors.admins}</p>
                   )}
-                </div>
-              </div>
-            )}
-
-            {step === 2 && (
-              <div className="space-y-4">
-                <Label className="text-purple-100">Privacy Setting</Label>
-                <RadioGroup
-                  name="private"
-                  value={formData.private ? "private" : "public"}
-                  onValueChange={(value: string) =>
-                    setFormData((prev) => ({ ...prev, private: value === "private" }))
-                  }
-                  className="flex flex-col space-y-2"
-                >
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value="public"
-                      id="public"
-                      className="border-purple-500"
-                    />
-                    <Label htmlFor="public" className="text-purple-100">
-                      Public
-                    </Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-4 w-4 text-purple-400" />
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-purple-900 text-purple-100">
-                          <p>Anyone can view and join your organization</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
+                  <div className="flex flex-wrap gap-2">
+                    {validAdmins.map((admin, index) => (
+                      <Badge
+                        key={index}
+                        className="bg-green-500/20 text-green-300"
+                      >
+                        {admin}
+                      </Badge>
+                    ))}
+                    {invalidAdmins.map((admin, index) => (
+                      <Badge key={index} className="bg-red-500/20 text-red-300">
+                        {admin} <X className="h-3 w-3 ml-1" />
+                      </Badge>
+                    ))}
                   </div>
-                  <div className="flex items-center space-x-2">
-                    <RadioGroupItem
-                      value="private"
-                      id="private"
-                      className="border-purple-500"
-                    />
-                    <Label htmlFor="private" className="text-purple-100">
-                      Private
-                    </Label>
-                    <TooltipProvider>
-                      <Tooltip>
-                        <TooltipTrigger>
-                          <Info className="h-4 w-4 text-purple-400" />
-                        </TooltipTrigger>
-                        <TooltipContent className="bg-purple-900 text-purple-100">
-                          <p>Only invited members can view and join your organization</p>
-                        </TooltipContent>
-                      </Tooltip>
-                    </TooltipProvider>
-                  </div>
-                </RadioGroup>
-              </div>
-            )}
-
-            {step === 3 && (
-              <div className="space-y-4">
-                <Label htmlFor="admins" className="text-purple-100">
-                  Add Admins
-                </Label>
-                <Textarea
-                  id="admins"
-                  name="admins"
-                  value={formData.admins}
-                  onChange={handleInputChange}
-                  className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
-                  placeholder="Enter usernames separated by commas"
-                />
-                {errors.admins && (
-                  <p className="text-red-400 text-sm mt-1">{errors.admins}</p>
-                )}
-                <div className="flex flex-wrap gap-2">
-                  {validAdmins.map((admin, index) => (
-                    <Badge
-                      key={index}
-                      className="bg-green-500/20 text-green-300"
-                    >
-                      {admin}
-                    </Badge>
-                  ))}
-                  {invalidAdmins.map((admin, index) => (
-                    <Badge key={index} className="bg-red-500/20 text-red-300">
-                      {admin} <X className="h-3 w-3 ml-1" />
-                    </Badge>
-                  ))}
                 </div>
-              </div>
-            )}
-          </form>
-        </CardContent>
+              )}
+            </form>
+          </CardContent>
 
-        <CardFooter className="flex justify-between">
-          <Button
-            type="button"
-            onClick={handlePrevious}
-            disabled={step === 1}
-            className="bg-purple-500 hover:bg-purple-600 text-white"
-          >
-            <ChevronLeft className="mr-2 h-4 w-4" /> Previous
-          </Button>
-
-          {step < 3 ? (
+          <CardFooter className="flex justify-between">
             <Button
               type="button"
-              onClick={handleNext}
-              disabled={!isStepValid()}
+              onClick={handlePrevious}
+              disabled={step === 1}
               className="bg-purple-500 hover:bg-purple-600 text-white"
             >
-              Next <ChevronRight className="ml-2 h-4 w-4" />
+              <ChevronLeft className="mr-2 h-4 w-4" /> Previous
             </Button>
-          ) : (
-            <Button
-              type="submit"
-              onClick={handleSubmit}
-              disabled={!isStepValid()}
-              className="bg-purple-500 hover:bg-purple-600 text-white"
-            >
-              Create Organization
-            </Button>
-          )}
-        </CardFooter>
-      </Card>
+
+            {step < 3 ? (
+              <Button
+                type="button"
+                onClick={handleNext}
+                disabled={!isStepValid()}
+                className="bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                Next <ChevronRight className="ml-2 h-4 w-4" />
+              </Button>
+            ) : (
+              <Button
+                type="submit"
+                onClick={handleSubmit}
+                disabled={!isStepValid()}
+                className="bg-purple-500 hover:bg-purple-600 text-white"
+              >
+                Create Organization
+              </Button>
+            )}
+          </CardFooter>
+        </Card>
+      </div>
     </div>
   );
 }

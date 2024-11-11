@@ -31,7 +31,19 @@ import {
 import { useAppContext } from "@/contexts/AppContext";
 import { useEffect, useState } from "react";
 import { organizationService } from "@/services/dbService";
+import { useLocation } from "react-router-dom";
 
+
+
+export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+	const context = useAppContext();
+	if (!context) return null;
+	const { globals } = context;
+const location = useLocation();
+
+    const [isLoading, setIsLoading] = React.useState<boolean>(true);
+    const [user, setUser] = React.useState<any>({});
+    const [userOrg, setUserOrg] = useState<any>([])
 const data = {
 	user: {
 		username: "techke4ma",
@@ -73,27 +85,31 @@ const data = {
 			title: "Overview",
 			url: "/dashboard/overview",
 			icon: LayoutDashboard,
-			isActive: true,
+			isActive: location.pathname === "/dashboard/overview",
 		},
 		{
 			title: "My Organizations",
 			url: "/dashboard/organizations",
 			icon: Building2,
-		},
+			isActive: location.pathname === "/dashboard/organizations",
+		    },
 		{
 			title: "My Governance",
 			url: "/dashboard/governance",
 			icon: Vote,
-		},
+			isActive: location.pathname === "/dashboard/governance",
+		    },
 		{
 			title: "Analytics",
 			url: "/dashboard/analytics",
 			icon: LineChart,
+			isActive: location.pathname === "/dashboard/analytics",
 		},
 		{
 			title: "Calendar",
 			url: "/dashboard/calendar",
 			icon: Calendar,
+			isActive: location.pathname === "/dashboard/calendar",
 		},
 	],
 	navOrgs: [
@@ -101,52 +117,47 @@ const data = {
 			title: "Overview",
 			url: "/dashboard/overview",
 			icon: LayoutDashboard,
-			isActive: true,
+			isActive: location.pathname === "/dashboard/overview",
 		},
 		{
 			title: "Governance",
 			url: "/governance",
 			icon: Vote,
+			isActive: location.pathname === "/governance",
 		},
 		{
 			title: "Analytics",
 			url: "/analytics",
 			icon: LineChart,
+			isActive: location.pathname === "/analytics",
 		},
 		{
 			title: "Members",
 			url: "/members",
 			icon: Users,
+			isActive: location.pathname === "/members",
 		},
 		{
 			title: "Treasury",
 			url: "/treasury",
 			icon: Wallet,
+			isActive: location.pathname === "/treasury",
 		},
 		{
 			title: "Calendar",
 			url: "/calendar",
 			icon: Calendar,
+			isActive: location.pathname === "/calendar",
 		},
 	],
 };
-
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-	const context = useAppContext();
-	if (!context) return null;
-	const { globals } = context;
-
-    const [isLoading, setIsLoading] = React.useState<boolean>(true);
-    const [user, setUser] = React.useState<any>({});
-    const [userOrg, setUserOrg] = useState<any>([])
-
     useEffect(() => {
-        async function getUserOrgs() {
-            const res = await organizationService.getOrganizationsByMember(globals.principal || '');
-            setUserOrg(res)
-        }
+        // async function getUserOrgs() {
+        //     const res = await organizationService.getOrganizationsByMember(globals.principal || '');
+        //     setUserOrg(res)
+        // }
 
-        getUserOrgs();
+        // getUserOrgs();
         async function getUserData() {
             if (globals.principal) {
                 const user = await quorum_backend.getUser(globals.principal);

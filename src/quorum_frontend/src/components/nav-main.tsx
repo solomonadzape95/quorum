@@ -35,11 +35,11 @@ export function NavMain({
 						key={item.title}
 						asChild
 						defaultOpen={item.isActive}
-						className='group/collapsible bg-[#6c49c4] py-2 rounded-lg shadow-sm my-1'>
+						className={`group/collapsible hover:bg-[#6c49c4] active:bg-[#6c49c4] py-2 rounded-lg shadow-sm my-1 ${item.isActive ? 'bg-[#6c49c4]' : ''}`}>
 						<SidebarMenuItem>
 							<SidebarMenuButton
 								tooltip={item.title}
-								className='bg-[#6c49c4] hover:bg-[#6c49c4] active:bg-[#6c49c4] px-4'>
+								className=' hover:bg-[#6c49c4] active:bg-[#6c49c4] px-4'>
 								<NavLink
 									to={item.url}
 									className='flex items-center gap-2 w-full'>

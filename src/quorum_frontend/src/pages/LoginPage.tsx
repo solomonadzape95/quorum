@@ -33,17 +33,13 @@ function LoginPage() {
 			const principalId = principal.toText();
 			
 			console.log(`Logged in with principal: ${principalId}`);
-
-            const isUserInLocalDB = await userService.checkAndCreateUser(principalId);
-
-            if(isUserInLocalDB){  
+           
                 const isNewUser = await quorum_backend.isNewUser(principalId);
                 if (isNewUser) {
                     navigate('/onboarding');
                 } else {
                     navigate('/dashboard');
                 }
-            }
 		}
 	}
 

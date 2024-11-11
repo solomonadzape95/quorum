@@ -28,15 +28,11 @@ export default function Dashboard() {
 		<SidebarProvider>
 			<AppSidebar />
 			<SidebarInset>
-				<header className='flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-12'>
-					<div className='flex items-center gap-2 px-4'>
-						<SidebarTrigger className='-ml-1' />
-						<Separator
-							orientation='vertical'
-							className='mr-2 h-4'
-						/>
-					</div>
-				</header>
+				<div className='sticky top-0 z-10'>
+					<SidebarTrigger 
+						className='absolute left-4 top-[50vh] transform -translate-y-1/2 bg-background border rounded-full p-1 shadow-sm'
+					/>
+				</div>
 				<Outlet />
 			</SidebarInset>
 		</SidebarProvider>
