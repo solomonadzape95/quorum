@@ -26,37 +26,25 @@ import {
   Loader2,
 } from "lucide-react";
 import OrganizationCreationForm from "@/components/forms/organizations";
-// import { quorum_backend } from "../declarations/quorum_backend/index.js";
-
-interface Organization {
-  id: number;
-  name: string;
-  activeProposals: number;
-  treasury: number;
-  memberCount: number;
-  memberActivity: number;
-  treasuryChange: number;
-  memberChange: number;
-}
+import { useAppContext } from "@/contexts/AppContext";
+import { Organization } from "@/types";
+import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
+import { quorum_backend } from "../../../declarations/quorum_backend";
+import { organizationService,userService } from "@/services/dbService";
 
 // Mock data for user's organizations (empty array to simulate no organizations initially)
 const initialOrganizations: Organization[] = [];
 
-// Mock data for discoverable organizations
+// Clean up mock data
 const discoverableOrganizations: Organization[] = [
   {
-    id: 3,
-    name: "Blockchain Governance",
-    activeProposals: 2,
-    treasury: 2000000,
-    memberCount: 1500,
-    memberActivity: 91,
-    treasuryChange: 7.8,
-    memberChange: 4.2,
-  },
-  {
-    id: 4,
-    name: "Crypto Commons",
+    id: "4",
+    name: "NACOS",
+    description: "The official Decentralized Autonomous Organization for NACOS Students.",
+    members: ["Ndukwe Peter", "Chinedu Okafor", "Matthew Okoronkwo"],
+    electionConducted: [],
+    pfp: "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHM9RzrlQIxioB6TBZNCRQ52LCVtZO7ACTVw&s",
+    isPublic: true,
     activeProposals: 4,
     treasury: 1200000,
     memberCount: 950,
@@ -65,8 +53,13 @@ const discoverableOrganizations: Organization[] = [
     memberChange: 2.8,
   },
   {
-    id: 5,
-    name: "DeFi Pioneers",
+    id: "5",
+    name: "ICP Hub",
+    description: "The official Decentralized Autonomous Organization for ICP Hub Students in the University of Nigeria, Nsukka.",
+    members: [],
+    electionConducted: [],
+    pfp: "https://cryptologos.cc/logos/internet-computer-icp-logo.png",
+    isPublic: true,
     activeProposals: 5,
     treasury: 3000000,
     memberCount: 2200,
@@ -81,93 +74,104 @@ interface ModalComponentProps {
   onClose: () => void;
 }
 
-// const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen, onClose }) => {
-//   const handleCreateOrg = async (name: string, description: string) => {
-//     try {
-//       await quorum_backend.create_organization({
-//         name: name,
-//         description: [description],
-//         members: [],
-//         proposals: [],
-//       });
-//       onClose();
-//       window.location.reload();
-//     } catch (error) {
-//       console.error("Failed to create organization:", error);
-//     }
-//   };
+const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen, onClose }) => {
+        const handleCreateOrg = async (name: string, isPublic: boolean, description: string, members: string[], elections: string[]) => {
+            try {
+                console.log("Creating organization:", name, isPublic, description, members, elections);
+            // const result = await quorum_backend.addOrgan(
+            //     name,
+            //     isPublic,
+            //     description,
+            //     members,
+            //     elections
+            // );
+            onClose();
+            console.log("Organization created:");
+            } catch (error) {
+            console.error("Failed to create organization:", error);
+            }
+        };
 
-//   if (!isOpen) return null;
+        if (!isOpen) return null;
 
-//   return (
-//     <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-//       <div className="bg-[#1a1625] rounded-lg p-6 w-full max-w-md border border-purple-500/20">
-//         <OrganizationCreationForm
-//           onSubmit={handleCreateOrg}
-//           onClose={onClose}
-//         />
-//       </div>
-//     </div>
-//   );
-// };
+        return (
+            <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-screen flex items-center justify-center z-50" >
+                <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-screen backdrop-blur-sm bg-black/50 flex items-center justify-center -z-50" onClick={onClose}/>
+            <div className="rounded-lg p-6 w-full max-w-md bg-[#0F0B15] border-purple-500/20 shadow-lg shadow-purple-500/10">
+                <OrganizationCreationForm
+                onSubmit={(name, description, admins) => handleCreateOrg(name, true, description, admins, [])}
+                onClose={onClose}
+                />
+            </div>
+            </div>
+        );
+};
 
 export default function OrganizationsPage() {
-  const [organizations, setOrganizations] =
-    useState<Organization[]>(initialOrganizations);
   const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [userOrganizations, setUserOrganizations] = useState<any>([]);
+  const [allOrgs, setAllOrgs] = useState<any>([]);
   const [discoveredOrgs, setDiscoveredOrgs] = useState<Organization[]>([]);
+  const [user, setUser] = useState<any>(null);
   const [isModalOpen, setIsModalOpen] = useState<boolean>(false);
+  const { globals } = useAppContext();  
 
-  // Enable dark mode
+  // Fetch user's organizations and discoverable organizations
   useEffect(() => {
-    document.documentElement.classList.add("dark");
+
+    const getUser = async () => {
+      const user = await userService.getUserById(globals.principal || '');
+      console.log(user)
+      setUser(user);
+    //   return user;
+    }
+
+    getUser();
+
+
+    const fetchOrganizations = async () => {
+        try {
+          setIsLoading(true);
+       
+          const res = await organizationService.getPublicOrganizations();
+          if(!res) throw new Error("Error");
+          console.log(res)
+          setAllOrgs(res)
+          return res
+      } catch (error) {
+        console.error("Failed to fetch organizations:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchOrganizations();
   }, []);
 
-  // Simulate loading organizations after a delay
-  useEffect(() => {
-    const timer = setTimeout(() => {
-      setOrganizations([
-        {
-          id: 1,
-          name: "DAO Innovators",
-          activeProposals: 3,
-          treasury: 1500000,
-          memberCount: 1200,
-          memberActivity: 85,
-          treasuryChange: 5.2,
-          memberChange: 3.1,
-        },
-        {
-          id: 2,
-          name: "Decentralized Collective",
-          activeProposals: 1,
-          treasury: 800000,
-          memberCount: 800,
-          memberActivity: 72,
-          treasuryChange: -2.1,
-          memberChange: 1.5,
-        },
-      ]);
-    }, 2000); // Simulate a 2-second loading time
-
-    return () => clearTimeout(timer);
-  }, []);
-
-  // Simulate discovering new organizations
-  const handleDiscoverOrganizations = () => {
-    setIsLoading(true);
-    setTimeout(() => {
-      setIsLoading(false);
-      setDiscoveredOrgs(discoverableOrganizations);
-    }, 2000);
-  };
+  useEffect(()=>{
+const discOrg = allOrgs.filter((org: any) => 
+            !org.members.some((member: any) => member.principalId === user?.principalId)
+          );
+        //   console.log(discOrg)
+          const userOrg = allOrgs.filter((org: any) => 
+            org.members.some((member: any) => member.principalId === user?.principalId)
+          );
+          console.log(userOrg,discOrg)
+          if(globals.principal){
+            setDiscoveredOrgs(discOrg)
+            setUserOrganizations(userOrg)
+          }
+  },[allOrgs,user])
 
   const OrganizationCard = ({ org }: { org: Organization }) => (
     <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10">
       <CardHeader>
         <CardTitle className="text-2xl flex items-center justify-between text-purple-100">
           <span className="flex items-center">
-            <Briefcase className="mr-2 h-6 w-6 text-purple-400" />
+            <Avatar className="w-10 h-10 rounded-full overflow-hidden mr-2">
+              <AvatarImage src={org.pfp} className="object-cover" />
+              <AvatarFallback>{org.name.charAt(0)}</AvatarFallback>
+            </Avatar>
             {org.name}
           </span>
           <Badge className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30">
@@ -175,68 +179,6 @@ export default function OrganizationsPage() {
           </Badge>
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-sm text-purple-300">Treasury Balance</p>
-            <p className="text-2xl font-bold text-purple-100">
-              ${org.treasury.toLocaleString()}
-            </p>
-          </div>
-          <Badge
-            variant="outline"
-            className={`flex items-center ${
-              org.treasuryChange >= 0
-                ? "text-green-400 border-green-400"
-                : "text-red-400 border-red-400"
-            }`}
-          >
-            {org.treasuryChange >= 0 ? (
-              <ArrowUpRight className="mr-1 h-4 w-4" />
-            ) : (
-              <ArrowDownRight className="mr-1 h-4 w-4" />
-            )}
-            {Math.abs(org.treasuryChange)}%
-          </Badge>
-        </div>
-        <Separator className="bg-purple-500/20" />
-        <div className="flex justify-between items-center">
-          <div>
-            <p className="text-sm text-purple-300">Member Count</p>
-            <p className="text-2xl font-bold text-purple-100">
-              {org.memberCount.toLocaleString()}
-            </p>
-          </div>
-          <Badge
-            variant="outline"
-            className={`flex items-center ${
-              org.memberChange >= 0
-                ? "text-green-400 border-green-400"
-                : "text-red-400 border-red-400"
-            }`}
-          >
-            {org.memberChange >= 0 ? (
-              <ArrowUpRight className="mr-1 h-4 w-4" />
-            ) : (
-              <ArrowDownRight className="mr-1 h-4 w-4" />
-            )}
-            {Math.abs(org.memberChange)}%
-          </Badge>
-        </div>
-        <Separator className="bg-purple-500/20" />
-        <div>
-          <div className="flex justify-between items-center mb-2">
-            <p className="text-sm text-purple-300">Member Activity</p>
-            <span className="text-sm font-medium text-purple-100">
-              {org.memberActivity}%
-            </span>
-          </div>
-          <Progress
-            value={org.memberActivity}
-            className="h-2 bg-purple-500/20"
-          />
-        </div>
-      </CardContent>
       <CardFooter>
         <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
           View Details
@@ -267,64 +209,68 @@ export default function OrganizationsPage() {
             </div>
           </header>
 
-          {organizations.length > 0 ? (
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-              {organizations.map((org) => (
-                <OrganizationCard key={org.id} org={org} />
-              ))}
+          {isLoading ? (
+            <div className="flex justify-center items-center h-32">
+              <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
             </div>
           ) : (
-            <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10">
-              <CardHeader>
-                <CardTitle className="text-2xl text-purple-100">
-                  No Organizations Yet
-                </CardTitle>
-                <CardDescription className="text-purple-300">
-                  You're not a member of any organizations. Create or join one
-                  to get started!
-                </CardDescription>
-              </CardHeader>
-            </Card>
-          )}
-
-          <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10 mt-8">
-            <CardHeader>
-              <CardTitle className="text-2xl flex items-center text-purple-100">
-                <Footprints className="mr-2 h-6 w-6 text-purple-400" />
-                Discover New Organizations
-              </CardTitle>
-              <CardDescription className="text-purple-300">
-                Explore and join new organizations that align with your
-                interests.
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {isLoading ? (
-                <div className="flex justify-center items-center h-32">
-                  <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
-                </div>
-              ) : discoveredOrgs.length > 0 ? (
+            <>
+              {userOrganizations.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {discoveredOrgs.map((org) => (
+                  {userOrganizations.map((org:any) => (
                     <OrganizationCard key={org.id} org={org} />
                   ))}
                 </div>
               ) : (
-                <Button
-                  onClick={handleDiscoverOrganizations}
-                  className="w-full bg-purple-500 hover:bg-purple-600 text-white"
-                >
-                  Discover Organizations
-                </Button>
+                <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10">
+                  <CardHeader>
+                    <CardTitle className="text-2xl text-purple-100">
+                      No Organizations Yet
+                    </CardTitle>
+                    <CardDescription className="text-purple-300">
+                      You're not a member of any organizations. Create or join one
+                      to get started!
+                    </CardDescription>
+                  </CardHeader>
+                </Card>
               )}
-            </CardContent>
-          </Card>
+
+              <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10 mt-8">
+                <CardHeader>
+                  <CardTitle className="text-2xl flex items-center text-purple-100">
+                    <Footprints className="mr-2 h-6 w-6 text-purple-400" />
+                    Discover New Organizations
+                  </CardTitle>
+                  <CardDescription className="text-purple-300">
+                    Explore and join new organizations that align with your
+                    interests.
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  {discoveredOrgs.length > 0 ? (
+                    <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                      {discoveredOrgs.map((org) => (
+                        <OrganizationCard key={org.id} org={org} />
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="text-center text-purple-300 py-4">
+                      No organizations available for discovery at the moment.
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            </>
+          )}
         </div>
       </div>
-      {/* <ModalComponent
+      <ModalComponent
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      /> */}
+        onClose={() => {
+          setIsModalOpen(false);
+        //   handleOrganizationCreated();
+        }}
+      />
     </div>
   );
 }

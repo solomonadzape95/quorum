@@ -23,7 +23,6 @@ export default function Dashboard() {
 
 	const { globals, updateView } = context;
 
-	console.log("Dashboard", globals);
 
 	return (
 		<SidebarProvider>

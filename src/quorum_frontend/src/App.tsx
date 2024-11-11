@@ -9,7 +9,7 @@ import UserCalendarPage from "./components/user-calendar";
 import UserGovernancePage from "./components/user-governace";
 import Dashboard from "./pages/Dashboard";
 import LandingPage from "./pages/LandingPage";
-import { createBrowserRouter, RouterProvider } from "react-router-dom";
+import { createBrowserRouter, Navigate, RouterProvider } from "react-router-dom";
 import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
@@ -36,10 +36,30 @@ const router = createBrowserRouter([
 			</ProtectedRoute>
 		),
 		children: [
+            {
+                path: "",
+                element: <Navigate to="overview" replace />
+            },
 			{
 				path: "overview",
 				element: <UserOverview />,
 			},
+            {
+                path: "organizations",
+                element: <OrganizationsPage />,
+            },
+            {
+                path: "governance",
+                element: <UserGovernancePage />,
+            },
+            {
+                path: "analytics",
+                element: <UserAnalyticsPage />,
+            },
+            {
+                path: "calendar",
+                element: <UserCalendarPage />,
+            },
 			{
 				path: "organizations/:orgid",
 				element: <OrganizationOverview />,

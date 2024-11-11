@@ -1,3 +1,4 @@
+import { quorum_backend } from "../../../declarations/quorum_backend";
 import { AuthClient } from "@dfinity/auth-client";
 import {
 	createContext,
@@ -6,12 +7,14 @@ import {
 	useContext,
 	useEffect,
 } from "react";
+import { User } from "../../../declarations/quorum_backend/quorum_backend.did";
 
 interface GlobalState {
 	view: "user" | "org";
 	activeTeam: string;
 	isAuthenticated: boolean;
 	principal: string | null;
+	user: User | null;
 }
 
 interface AppContextType {
@@ -33,11 +36,8 @@ export function ContextProvider({ children }: { children: ReactNode }) {
 		activeTeam: localStorage.getItem("activeTeam") || "user",
 		isAuthenticated: false,
 		principal: null,
+		user: null,
 	}));
-
-	useEffect(() => {
-		initAuth();
-	}, []);
 
 	async function initAuth() {
 		const client = await AuthClient.create();
@@ -49,6 +49,11 @@ export function ContextProvider({ children }: { children: ReactNode }) {
 			setGlobals((g) => ({ ...g, isAuthenticated: true, principal }));
 		}
 	}
+    
+	useEffect(() => {
+		initAuth();
+	}, []);
+
 
 	async function login() {
 		if (!authClient) return;
@@ -64,6 +69,7 @@ export function ContextProvider({ children }: { children: ReactNode }) {
 			},
 		});
 	}
+
 
 	async function logout() {
 		if (!authClient) return;

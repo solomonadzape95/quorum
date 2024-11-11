@@ -1,0 +1,410 @@
+{
+  "users": [
+    {
+      "username": "alice_dao",
+      "displayName": "Alice Thompson",
+      "pfp": "https://i.pravatar.cc/150?u=alice",
+      "principalId": "2vxsx-fae-123-aaaa-000",
+      "organizations": [
+        {
+          "orgId": "org1",
+          "role": "ADMIN"
+        },
+        {
+          "orgId": "org2",
+          "role": "MEMBER"
+        }
+      ],
+      "elections": [
+        "election1",
+        "election3"
+      ],
+      "proposals": [
+        {
+          "id": 1,
+          "vote": "For",
+          "result": "Passed",
+          "date": "2024-02-15T10:00:00Z"
+        },
+        {
+          "id": 2,
+          "vote": "Against",
+          "result": "Failed",
+          "date": "2024-03-01T10:00:00Z"
+        }
+      ],
+      "id": "f1b2"
+    },
+    {
+      "username": "bob_crypto",
+      "displayName": "Bob Martinez",
+      "pfp": "https://i.pravatar.cc/150?u=bob",
+      "principalId": "2vxsx-fae-123-bbbb-111",
+      "organizations": [
+        {
+          "orgId": "org1",
+          "role": "MEMBER"
+        },
+        {
+          "orgId": "org3",
+          "role": "ADMIN"
+        }
+      ],
+      "elections": [
+        "election2"
+      ],
+      "proposals": [
+        {
+          "id": 3,
+          "vote": "For",
+          "result": "Passed",
+          "date": "2024-03-15T10:00:00Z"
+        }
+      ],
+      "id": "1e07"
+    },
+    {
+      "username": "carol_web3",
+      "displayName": "Carol Williams",
+      "pfp": "https://i.pravatar.cc/150?u=carol",
+      "principalId": "2vxsx-fae-123-cccc-222",
+      "organizations": [
+        {
+          "orgId": "org2",
+          "role": "ADMIN"
+        }
+      ],
+      "elections": [
+        "election1",
+        "election2"
+      ],
+      "proposals": [],
+      "id": "00fb"
+    },
+    {
+      "id": "12e1",
+      "username": "ndukwe-peter",
+      "principalId": "2vxsx-fae-123-dddd-333",
+      "createdAt": "2024-11-11T14:06:27.005Z",
+      "organizations": [],
+      "delegations": {
+        "given": [],
+        "received": []
+      },
+      "notifications": [],
+      "votingHistory": []
+    },
+    {
+      "id": "3aff",
+      "principalId": "avdj7-yvux2-u7kz7-uboki-vdpck-ifumc-yg6xy-v2jpf-orpr2-k7q3p-eqe",
+      "createdAt": "2024-11-11T14:48:08.788Z",
+      "organizations": [],
+      "delegations": {
+        "given": [],
+        "received": []
+      },
+      "notifications": [],
+      "votingHistory": []
+    }
+  ],
+  "organizations": [
+    {
+      "id": "org1",
+      "name": "DeFi Governance DAO",
+      "pfp": "https://i.pravatar.cc/150?u=org1",
+      "isPublic": true,
+      "description": "Decentralized Finance Governance Organization",
+      "members": [
+        {
+          "principalId": "2vxsx-fae-123-aaaa-000",
+          "role": "ADMIN"
+        },
+        {
+          "principalId": "2vxsx-fae-123-bbbb-111",
+          "role": "MEMBER"
+        }
+      ],
+      "treasury": {
+        "balance": 1000000,
+        "history": [
+          {
+            "date": "2024-03-01",
+            "amount": 1000000,
+            "change": 50000,
+            "description": "Monthly revenue"
+          }
+        ]
+      },
+      "metrics": {
+        "memberCount": 2,
+        "activeProposals": 3,
+        "memberActivity": 85,
+        "treasuryChange": 5.2,
+        "memberChange": 1
+      }
+    },
+    {
+      "id": "4",
+      "name": "NACOS",
+      "handle": "nacos",
+      "description": "The official Decentralized Autonomous Organization for NACOS Students.",
+      "isPublic": true,
+      "createdAt": "2024-01-15T10:00:00.000Z",
+      "members": [
+        {
+          "principalId": "2vxsx-fae-123-dddd-333",
+          "role": "ADMIN",
+          "joinedAt": "2024-01-15T10:00:00.000Z"
+        },
+        {
+          "principalId": "2vxsx-fae-123-eeee-444",
+          "role": "ADMIN",
+          "joinedAt": "2024-01-15T10:00:00.000Z"
+        },
+        {
+          "principalId": "2vxsx-fae-123-ffff-555",
+          "role": "ADMIN",
+          "joinedAt": "2024-01-15T10:00:00.000Z"
+        }
+      ],
+      "pfp": "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcTHM9RzrlQIxioB6TBZNCRQ52LCVtZO7ACTVw&s",
+      "elections": [],
+      "proposals": [],
+      "stats": {
+        "activeProposals": 4,
+        "treasury": 1200000,
+        "memberCount": 950,
+        "memberActivity": 78,
+        "treasuryChange": 3.5,
+        "memberChange": 2.8
+      }
+    },
+    {
+      "id": "5",
+      "name": "ICP Hub",
+      "handle": "icp-hub",
+      "description": "The official Decentralized Autonomous Organization for ICP Hub Students in the University of Nigeria, Nsukka.",
+      "isPublic": false,
+      "createdAt": "2024-01-20T10:00:00.000Z",
+      "members": [],
+      "pfp": "https://cryptologos.cc/logos/internet-computer-icp-logo.png",
+      "elections": [],
+      "proposals": [],
+      "stats": {
+        "activeProposals": 5,
+        "treasury": 3000000,
+        "memberCount": 2200,
+        "memberActivity": 88,
+        "treasuryChange": 10.2,
+        "memberChange": 5.7
+      }
+    },
+    {
+      "id": "org2",
+      "name": "NFT Collectors Guild",
+      "pfp": "https://i.pravatar.cc/150?u=org2",
+      "isPublic": true,
+      "description": "Community of NFT enthusiasts and collectors",
+      "members": [
+        {
+          "principalId": "2vxsx-fae-123-cccc-222",
+          "role": "ADMIN"
+        },
+        {
+          "principalId": "2vxsx-fae-123-aaaa-000",
+          "role": "MEMBER"
+        }
+      ],
+      "treasury": {
+        "balance": 750000,
+        "history": [
+          {
+            "date": "2024-03-01",
+            "amount": 750000,
+            "change": -25000,
+            "description": "Project funding"
+          }
+        ]
+      },
+      "metrics": {
+        "memberCount": 2,
+        "activeProposals": 1,
+        "memberActivity": 92,
+        "treasuryChange": -2.1,
+        "memberChange": 0
+      }
+    },
+    {
+      "id": "4f44dcd1-79bc-4eb3-a548-ac7e84a7f930",
+      "name": "Dreamers Dao",
+      "handle": "dreamersdao",
+      "description": "",
+      "isPublic": true,
+      "createdAt": "2024-11-11T13:15:18.255Z",
+      "members": [
+        {
+          "principalId": "avdj7-yvux2-u7kz7-uboki-vdpck-ifumc-yg6xy-v2jpf-orpr2-k7q3p-eqe",
+          "role": "ADMIN",
+          "joinedAt": "2024-11-11T13:15:18.255Z"
+        },
+        {
+          "principalId": "si8j2-789-456-7890-12",
+          "role": "ADMIN",
+          "joinedAt": "2024-11-11T13:15:18.255Z"
+        },
+        {
+          "principalId": "wretr-456-789-1234-56",
+          "role": "ADMIN",
+          "joinedAt": "2024-11-11T13:15:18.255Z"
+        }
+      ],
+      "pfp": "blob:http://localhost:3000/bae1dc75-14d2-4043-b524-2a0eae4c42d6",
+      "elections": [],
+      "proposals": []
+    },
+    {
+      "id": "0af5bfd3-9f0d-470d-ab15-c9254831ec93",
+      "name": "dwsd",
+      "handle": "sd",
+      "description": "",
+      "isPrivate": true,
+      "createdAt": "2024-11-11T15:31:03.035Z",
+      "members": [
+        {
+          "principalId": "wewaa",
+          "role": "ADMIN",
+          "joinedAt": "2024-11-11T15:31:03.035Z"
+        },
+        {
+          "principalId": "fsrdf",
+          "role": "ADMIN",
+          "joinedAt": "2024-11-11T15:31:03.035Z"
+        },
+        {
+          "principalId": "asdfsd",
+          "role": "ADMIN",
+          "joinedAt": "2024-11-11T15:31:03.035Z"
+        }
+      ],
+      "profilePicture": "blob:http://localhost:3000/37a9bd6e-2cc3-4a9d-9d7d-d066cc0c31a3",
+      "elections": [],
+      "proposals": []
+    }
+  ],
+  "elections": [
+    {
+      "electionId": "election1",
+      "organizationId": "org1",
+      "description": "Board Member Election 2024",
+      "status": "ACTIVE",
+      "startDate": "2024-03-01T00:00:00Z",
+      "endDate": "2024-04-01T23:59:59Z",
+      "contestants": [
+        {
+          "contestantId": "cont1",
+          "name": "David Chen",
+          "description": "5 years DeFi experience, former CTO",
+          "tally": 145
+        },
+        {
+          "contestantId": "cont2",
+          "name": "Sarah Johnson",
+          "description": "10 years in blockchain governance",
+          "tally": 167
+        },
+        {
+          "contestantId": "cont3",
+          "name": "Michael Brown",
+          "description": "Community leader and strategist",
+          "tally": 89
+        }
+      ],
+      "id": "87de"
+    },
+    {
+      "electionId": "election2",
+      "organizationId": "org2",
+      "description": "Technical Committee Election",
+      "status": "COMPLETED",
+      "startDate": "2024-02-01T00:00:00Z",
+      "endDate": "2024-03-01T23:59:59Z",
+      "contestants": [
+        {
+          "contestantId": "cont4",
+          "name": "Emma Wilson",
+          "description": "Smart contract specialist",
+          "tally": 234,
+          "winner": true
+        },
+        {
+          "contestantId": "cont5",
+          "name": "James Lee",
+          "description": "Security expert",
+          "tally": 198
+        }
+      ],
+      "id": "860b"
+    }
+  ],
+  "proposals": [
+    {
+      "id": "1",
+      "organizationId": "org1",
+      "title": "Increase Development Fund",
+      "description": "Proposal to increase the development fund by 20%",
+      "status": "Active",
+      "startDate": "2024-03-01T00:00:00Z",
+      "endDate": "2024-04-01T23:59:59Z",
+      "votesFor": 156,
+      "votesAgainst": 89,
+      "voters": [
+        {
+          "username": "2vxsx-fae-123-aaaa-000",
+          "vote": "For",
+          "votingPower": 100
+        },
+        {
+          "username": "2vxsx-fae-123-bbbb-111",
+          "vote": "Against",
+          "votingPower": 50
+        }
+      ]
+    },
+    {
+      "id": "2",
+      "organizationId": "org1",
+      "title": "New Marketing Initiative",
+      "description": "Allocate funds for Q2 marketing campaign",
+      "status": "Passed",
+      "startDate": "2024-02-01T00:00:00Z",
+      "endDate": "2024-03-01T23:59:59Z",
+      "votesFor": 245,
+      "votesAgainst": 112,
+      "voters": [
+        {
+          "username": "2vxsx-fae-123-aaaa-000",
+          "vote": "For",
+          "votingPower": 100
+        }
+      ]
+    },
+    {
+      "id": "3",
+      "organizationId": "org2",
+      "title": "NFT Platform Integration",
+      "description": "Integration with major NFT marketplace",
+      "status": "Active",
+      "startDate": "2024-03-15T00:00:00Z",
+      "endDate": "2024-04-15T23:59:59Z",
+      "votesFor": 78,
+      "votesAgainst": 45,
+      "voters": [
+        {
+          "username": "2vxsx-fae-123-cccc-222",
+          "vote": "For",
+          "votingPower": 75
+        }
+      ]
+    }
+  ]
+}

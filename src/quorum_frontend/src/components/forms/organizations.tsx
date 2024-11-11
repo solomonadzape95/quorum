@@ -1,4 +1,4 @@
-"use client";
+import { quorum_backend } from "../../../../declarations/quorum_backend";
 
 import React, { useState, useEffect } from "react";
 import {
@@ -24,18 +24,22 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ChevronLeft, ChevronRight, Upload, Info, X } from "lucide-react";
+import { Organization, organizationService } from "@/services/dbService";
+import { useAppContext } from "@/contexts/AppContext";
+
 interface FormErrs {
   name?: string;
   handle?: string;
   profilePicture?: string;
-  privacy?: "public";
   admins?: string;
+  description?: string;
 }
+
 export default function OrganizationCreationForm({
   onSubmit,
   onClose,
 }: {
-  onSubmit: (name: string, description: string) => void;
+  onSubmit: (name: string, description: string, admins: string[]) => void;
   onClose: () => void;
 }) {
   const [step, setStep] = useState(1);
@@ -43,17 +47,16 @@ export default function OrganizationCreationForm({
     name: "",
     handle: "",
     profilePicture: null as File | null,
-    privacy: "public",
+    private: false,
     admins: "",
+    description: "",
   });
   const [errors, setErrors] = useState<FormErrs>({});
   const [validAdmins, setValidAdmins] = useState<string[] | []>([]);
   const [invalidAdmins, setInvalidAdmins] = useState<string[] | []>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const { globals } = useAppContext();
 
-  // Enable dark mode
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-  }, []);
 
   const handleInputChange = (
     e:
@@ -97,10 +100,21 @@ export default function OrganizationCreationForm({
     }
     setErrors(newErrors);
   };
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (files && files.length > 0) {
       const file = files[0];
+      const maxSize = 2 * 1024 * 1024; // 2MB in bytes
+
+      if (file.size > maxSize) {
+        setErrors((prev) => ({
+          ...prev,
+          profilePicture: "File size must be less than 2MB",
+        }));
+        return;
+      }
+
       if (file.type.startsWith("image/")) {
         setFormData((prev) => ({ ...prev, profilePicture: file }));
         delete errors.profilePicture;
@@ -121,12 +135,64 @@ export default function OrganizationCreationForm({
     if (step > 1) setStep((prev) => prev - 1);
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Here you would typically send the form data to your backend
-    console.log("Form submitted:", formData);
-    // For demonstration, we'll just show an alert
-    alert("Organization created successfully!");
+    setIsLoading(true);
+
+    try {
+      // Convert comma-separated admins string to array and take first 3
+      const adminsList = formData.admins
+        .split(',')
+        .map(admin => admin.trim())
+        .filter(admin => admin !== '')
+        .slice(0, 3);
+
+      // Ensure exactly 3 admins
+      if (adminsList.length !== 3) {
+        setErrors(prev => ({
+          ...prev,
+          admins: "Exactly 3 admins are required"
+        }));
+        setIsLoading(false);
+        return;
+      }
+
+      // Create new organization object
+      const newOrganization:Organization = {
+        id: `${crypto.randomUUID()}`,
+        name: formData.name,
+        handle: formData.handle,
+        description: formData.description,
+        isPublic: !formData.private,
+        members: adminsList.map(admin => ({
+          principalId: admin,
+          role: 'ADMIN',
+        })),
+        pfp: formData.profilePicture ? URL.createObjectURL(formData.profilePicture) : '',
+        electionConducted: [],
+      };
+
+      // Send POST request to JSON server
+      const response = await organizationService.createOrganization(newOrganization)
+
+      if (!response) {
+        throw new Error('Failed to create organization');
+      }
+
+      // Call the onSubmit callback with the created organization
+      const createdOrg =  response
+      onSubmit(createdOrg.name, createdOrg.description, adminsList);
+      onClose();
+
+    } catch (error) {
+      console.error("Error creating organization:", error);
+      setErrors(prev => ({
+        ...prev,
+        submit: "Failed to create organization. Please try again."
+      }));
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const isStepValid = () => {
@@ -141,25 +207,32 @@ export default function OrganizationCreationForm({
       case 2:
         return true; // Privacy selection is always valid
       case 3:
-        return validAdmins.length > 0 && invalidAdmins.length === 0;
+        const adminCount = formData.admins
+            .split(',')
+            .map(admin => admin.trim())
+            .filter(admin => admin !== '')
+            .length;
+        return validAdmins.length === 3 && invalidAdmins.length === 0;
       default:
         return false;
     }
   };
 
   return (
-    <div className="min-h-screen bg-[#0F0B15] bg-grid-small-white/[0.2] relative flex items-center justify-center p-4">
+    <div className="bg-[#0F0B15] bg-grid-small-white/[0.2] relative flex items-center justify-center p-4">
       <div className="absolute inset-0 bg-[#0F0B15]/80 pointer-events-none" />
       <Card className="w-full max-w-2xl bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10 relative z-10">
         <CardHeader>
           <CardTitle className="text-2xl text-center bg-gradient-to-r from-purple-600 to-fuchsia-500 bg-clip-text text-transparent">
             Create Your Organization
           </CardTitle>
+
           <CardDescription className="text-center text-purple-300">
             Step {step} of 3
           </CardDescription>
           <Progress value={step * 33.33} className="w-full h-2 bg-red-500" />
         </CardHeader>
+
         <CardContent>
           <form onSubmit={handleSubmit} className="space-y-6">
             {step === 1 && (
@@ -232,14 +305,15 @@ export default function OrganizationCreationForm({
                 </div>
               </div>
             )}
+
             {step === 2 && (
               <div className="space-y-4">
                 <Label className="text-purple-100">Privacy Setting</Label>
                 <RadioGroup
-                  name="privacy"
-                  value={formData.privacy}
+                  name="private"
+                  value={formData.private ? "private" : "public"}
                   onValueChange={(value: string) =>
-                    setFormData((prev) => ({ ...prev, privacy: value }))
+                    setFormData((prev) => ({ ...prev, private: value === "private" }))
                   }
                   className="flex flex-col space-y-2"
                 >
@@ -278,10 +352,7 @@ export default function OrganizationCreationForm({
                           <Info className="h-4 w-4 text-purple-400" />
                         </TooltipTrigger>
                         <TooltipContent className="bg-purple-900 text-purple-100">
-                          <p>
-                            Only invited members can view and join your
-                            organization
-                          </p>
+                          <p>Only invited members can view and join your organization</p>
                         </TooltipContent>
                       </Tooltip>
                     </TooltipProvider>
@@ -289,6 +360,7 @@ export default function OrganizationCreationForm({
                 </RadioGroup>
               </div>
             )}
+
             {step === 3 && (
               <div className="space-y-4">
                 <Label htmlFor="admins" className="text-purple-100">
@@ -324,6 +396,7 @@ export default function OrganizationCreationForm({
             )}
           </form>
         </CardContent>
+
         <CardFooter className="flex justify-between">
           <Button
             type="button"
@@ -333,6 +406,7 @@ export default function OrganizationCreationForm({
           >
             <ChevronLeft className="mr-2 h-4 w-4" /> Previous
           </Button>
+
           {step < 3 ? (
             <Button
               type="button"

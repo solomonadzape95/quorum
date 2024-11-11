@@ -1,3 +1,5 @@
+import { quorum_backend } from "../../../../declarations/quorum_backend";
+
 import { useState, useEffect } from "react";
 import {
 	Card,
@@ -19,6 +21,23 @@ import {
 	TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { ChevronLeft, ChevronRight, Upload, Info } from "lucide-react";
+import { useAppContext } from "@/contexts/AppContext";
+import { useNavigate } from "react-router-dom";
+
+// Add this helper function to convert File to base64 string
+const fileToDataUrl = (file: File): Promise<string> => {
+	return new Promise((resolve, reject) => {
+		const reader = new FileReader();
+		reader.onloadend = () => {
+			resolve(reader.result as string);
+		};
+		reader.onerror = reject;
+		reader.readAsDataURL(file);
+	});
+};
+
+// Add a constant for max file size (2MB in bytes)
+const MAX_FILE_SIZE = 2 * 1024 * 1024; // 2MB in bytes
 
 export default function ProfileCreationForm() {
 	const [step, setStep] = useState(1);
@@ -26,10 +45,12 @@ export default function ProfileCreationForm() {
 		displayName: string;
 		username: string;
 		profilePicture: File | null;
+			principalId: string;
 	}>({
 		displayName: "",
 		username: "",
 		profilePicture: null,
+        principalId: "",
 	});
 	const [errors, setErrors] = useState<{
 		displayName?: string | null;
@@ -41,9 +62,16 @@ export default function ProfileCreationForm() {
 	});
 	const [previewUrl, setPreviewUrl] = useState(String);
 
-	// Enable dark mode
+    const {authClient} = useAppContext();
+    const navigate = useNavigate();
+
+
 	useEffect(() => {
-		document.documentElement.classList.add("dark");
+		const principalId = authClient?.getIdentity().getPrincipal().toText();
+
+        if (principalId) {
+            setFormData((prev) => ({ ...prev, principalId: principalId }));
+        }
 	}, []);
 
 	const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -73,12 +101,33 @@ export default function ProfileCreationForm() {
 		setErrors(newErrors);
 	};
 
-	const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+	// Update handleFileChange to store the data URL
+	const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
 		const file = e.target.files?.[0];
-		if (file && file.type.startsWith("image/")) {
-			setFormData((prev) => ({ ...prev, profilePicture: file }));
-			setPreviewUrl(URL.createObjectURL(file) as string);
-			setErrors((prev) => ({ ...prev, profilePicture: null }));
+		
+		if (!file) return;
+
+		// Check file size first
+		if (file.size > MAX_FILE_SIZE) {
+			setErrors((prev) => ({
+				...prev,
+				profilePicture: "File size must be less than 2MB",
+			}));
+			return;
+		}
+
+		if (file.type.startsWith("image/")) {
+			try {
+				const dataUrl = await fileToDataUrl(file);
+				setFormData((prev) => ({ ...prev, profilePicture: file }));
+				setPreviewUrl(dataUrl);
+				setErrors((prev) => ({ ...prev, profilePicture: null }));
+			} catch (error) {
+				setErrors((prev) => ({
+					...prev,
+					profilePicture: "Error processing image file",
+				}));
+			}
 		} else {
 			setErrors((prev) => ({
 				...prev,
@@ -95,16 +144,33 @@ export default function ProfileCreationForm() {
 		if (step > 1) setStep((prev) => prev - 1);
 	};
 
-	const handleSubmit = (
-		e:
-			| React.FormEvent<HTMLFormElement>
-			| React.MouseEvent<HTMLButtonElement>
+	// Update handleSubmit to use the data URL
+	const handleSubmit = async (
+		e: React.FormEvent<HTMLFormElement> | React.MouseEvent<HTMLButtonElement>
 	) => {
 		e.preventDefault();
-		// Here you would typically send the form data to your backend
-		console.log("Form submitted:", formData);
-		// For demonstration, we'll just show an alert
-		alert("Profile created successfully!");
+
+        if(step < 3) {
+            setStep(prev=>prev + 1)
+            return;
+        }
+        
+        const newUser = {
+            username: formData.username,
+            displayName: formData.displayName,
+            pfp: previewUrl,
+            principalId: formData.principalId,
+            organizations: [],
+            elections: [],
+        }
+
+        const res = await quorum_backend.addUser(newUser.username, newUser.displayName, newUser.pfp, newUser.principalId, newUser.organizations, newUser.elections);
+
+        if (res) {
+            navigate("/dashboard")
+        } else {
+            alert("Failed to create profile");
+        }
 	};
 
 	const isStepValid = () => {
@@ -210,7 +276,7 @@ export default function ProfileCreationForm() {
 								<Label
 									htmlFor='profilePicture'
 									className='text-purple-100'>
-									Profile Picture
+									Profile Picture <span className="text-sm text-purple-300">(Max 2MB)</span>
 								</Label>
 								<div className='flex flex-col items-center space-y-4'>
 									<Avatar className='w-32 h-32'>
@@ -243,6 +309,7 @@ export default function ProfileCreationForm() {
 										accept='image/*'
 										onChange={handleFileChange}
 										className='hidden'
+										data-max-size={MAX_FILE_SIZE}
 									/>
 									{formData.profilePicture && (
 										<p className='text-purple-300'>

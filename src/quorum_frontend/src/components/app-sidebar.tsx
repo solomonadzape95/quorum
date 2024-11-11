@@ -1,3 +1,4 @@
+import { quorum_backend } from "../../../declarations/quorum_backend";
 import * as React from "react";
 import {
 	AudioWaveform,
@@ -28,31 +29,43 @@ import {
 	SidebarRail,
 } from "@/components/ui/sidebar";
 import { useAppContext } from "@/contexts/AppContext";
+import { useEffect, useState } from "react";
+import { organizationService } from "@/services/dbService";
 
 const data = {
 	user: {
-		name: "Gloria Madubueze",
-		email: "gloriaim@nacos.org",
-		avatar: "/Images/gim.jpg",
+		username: "techke4ma",
+		displayName: "Gloria Madubueze",
+		principalId: "gloriaim@nacos.org",
+		pfp: "/Images/gim.jpg",
 	},
 	organizations: [
 		{
 			id: "1",
 			name: "Acme Inc",
-			logo: GalleryVerticalEnd,
-			plan: "Enterprise",
+			pfp: "/Images/gim.jpg",
+			isPublic: true,
+			description: "Acme Inc is a company that makes widgets",
+			members: ["gloriaim@nacos.org"],
+			electionConducted: [],
 		},
 		{
 			id: "2",
 			name: "Acme Corp.",
-			logo: AudioWaveform,
-			plan: "Startup",
+			pfp: "/Images/gim.jpg",
+			isPublic: true,
+			description: "Acme Corp. is a company that makes widgets",
+			members: ["gloriaim@nacos.org"],
+			electionConducted: [],
 		},
 		{
 			id: "3",
 			name: "Evil Corp.",
-			logo: Command,
-			plan: "Free",
+			pfp: "/Images/gim.jpg",
+			isPublic: true,
+			description: "Evil Corp. is a company that makes widgets",
+			members: ["gloriaim@nacos.org"],
+			electionConducted: [],
 		},
 	],
 	navUser: [
@@ -74,12 +87,12 @@ const data = {
 		},
 		{
 			title: "Analytics",
-			url: "/analytics",
+			url: "/dashboard/analytics",
 			icon: LineChart,
 		},
 		{
 			title: "Calendar",
-			url: "/calendar",
+			url: "/dashboard/calendar",
 			icon: Calendar,
 		},
 	],
@@ -121,15 +134,42 @@ const data = {
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 	const context = useAppContext();
 	if (!context) return null;
-	const { globals, updateView } = context;
+	const { globals } = context;
+
+    const [isLoading, setIsLoading] = React.useState<boolean>(true);
+    const [user, setUser] = React.useState<any>({});
+    const [userOrg, setUserOrg] = useState<any>([])
+
+    useEffect(() => {
+        async function getUserOrgs() {
+            const res = await organizationService.getOrganizationsByMember(globals.principal || '');
+            setUserOrg(res)
+        }
+
+        getUserOrgs();
+        async function getUserData() {
+            if (globals.principal) {
+                const user = await quorum_backend.getUser(globals.principal);
+            if (user) {
+                console.log(user);
+                setUser(user[0]);
+                setIsLoading(false);
+				}
+			}
+		}
+			getUserData();
+	}, []);
+
+if (isLoading) return null;
+
 	return (
 		<Sidebar
 			collapsible='icon'
 			{...props}>
 			<SidebarHeader>
 				<TeamSwitcher
-					teams={data.organizations}
-					user={data.user}
+					user={user ?? undefined}
+                    organizations={userOrg ?? []}
 				/>
 			</SidebarHeader>
 
@@ -141,7 +181,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
 				/>
 			</SidebarContent>
 			<SidebarFooter>
-				<NavUser user={data.user} />
+				<NavUser user={user} />
 			</SidebarFooter>
 			<SidebarRail />
 		</Sidebar>

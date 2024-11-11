@@ -32,31 +32,33 @@ import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppContext } from "@/contexts/AppContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
-import { Outlet, useLocation, useParams } from "react-router-dom";
+import { Link, Outlet, useLocation, useNavigate, useParams } from "react-router-dom";
+import { Organization } from "@/types";
+
 // Mock data remains the same as previous example
-const organizations = [
-	{
-		id: 1,
-		name: "DAO Innovators",
-		role: "Admin",
-		activeProposals: 3,
-		treasury: 1500000,
-	},
-	{
-		id: 2,
-		name: "Decentralized Collective",
-		role: "Member",
-		activeProposals: 1,
-		treasury: 800000,
-	},
-	{
-		id: 3,
-		name: "Blockchain Governance",
-		role: "Member",
-		activeProposals: 2,
-		treasury: 2000000,
-	},
-];
+// const organizations = [
+// 	{
+// 		id: 1,
+// 		name: "DAO Innovators",
+// 		role: "Admin",
+// 		activeProposals: 3,
+// 		treasury: 1500000,
+// 	},
+// 	{
+// 		id: 2,
+// 		name: "Decentralized Collective",
+// 		role: "Member",
+// 		activeProposals: 1,
+// 		treasury: 800000,
+// 	},
+// 	{
+// 		id: 3,
+// 		name: "Blockchain Governance",
+// 		role: "Member",
+// 		activeProposals: 2,
+// 		treasury: 2000000,
+// 	},
+// ];
 
 const recentActivities = [
 	{
@@ -113,10 +115,9 @@ export function UserOverview() {
 	// Enable dark mode
 	const { userid } = useParams();
 	const location = useLocation();
+const organizations:any = []
 
-	useEffect(() => {
-		document.documentElement.classList.add("dark");
-	}, []);
+    const navigate = useNavigate();
 
 	const isBasePath = location.pathname === `/dashboard/overview`;
 	return isBasePath ? (
@@ -128,21 +129,19 @@ export function UserOverview() {
 						<h1 className='text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-500 bg-clip-text text-transparent'>
 							My Dashboard
 						</h1>
-						<a href='/dashboard/organizations'>
-							<Button
-								variant='outline'
-								className='border-purple-500 hover:bg-purple-500/20'
-								title='View All Organizations'>
-								<Users className='md:mr-2 h-8 w-8' />
-								<span className='hidden md:block'>
+						<Link   
+							to='/dashboard/organizations'
+							className='border-purple-500 hover:bg-purple-500/20 flex items-center gap-2 border rounded-md p-2'
+							title='View All Organizations'>
+							<Users className='md:mr-2 h-4 w-4 text-purple-300' />
+							<span className='hidden md:block text-sm text-purple-300'>
 									View All Organizations
 								</span>
-							</Button>
-						</a>
+						</Link>
 					</header>
 
 					<div className='grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8'>
-						{organizations.map((org) => (
+						{organizations && organizations.length > 0 ? organizations.map((org: Organization) => (
 							<Card
 								key={org.id}
 								className='flex flex-col bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10'>
@@ -152,12 +151,12 @@ export function UserOverview() {
 											<Briefcase className='mr-2 h-5 w-5 text-purple-400' />
 											{org.name}
 										</span>
-										<Badge className='bg-purple-500/20 text-purple-300 hover:bg-purple-500/30'>
+										{/* <Badge className='bg-purple-500/20 text-purple-300 hover:bg-purple-500/30'>
 											{org.role}
-										</Badge>
+										</Badge> */}
 									</CardTitle>
 								</CardHeader>
-								<CardContent className='py-2'>
+								{/* <CardContent className='py-2'>
 									<div className='flex justify-between items-center mb-2'>
 										<span className='text-sm text-purple-300'>
 											Active Proposals
@@ -176,7 +175,7 @@ export function UserOverview() {
 											${org.treasury.toLocaleString()}
 										</span>
 									</div>
-								</CardContent>
+								</CardContent> */}
 								<CardFooter className='mt-auto pt-2'>
 									<Button
 										variant='ghost'
@@ -186,7 +185,11 @@ export function UserOverview() {
 									</Button>
 								</CardFooter>
 							</Card>
-						))}
+						)) : (
+							<div className='text-center text-purple-300'>
+								No organizations found
+							</div>
+						)}
 					</div>
 
 					<div className='grid grid-cols-1 lg:grid-cols-2 gap-8'>
@@ -201,7 +204,10 @@ export function UserOverview() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<ScrollArea className='h-[300px] pr-4'>
+                                <p className="text-sm">
+                                    No recent activities yet, start engaging with your organizations!
+                                </p>
+								{/* <ScrollArea className='h-[300px] pr-4'>
 									{recentActivities.map((activity) => (
 										<div
 											key={activity.id}
@@ -239,16 +245,16 @@ export function UserOverview() {
 											<Separator className='my-4 bg-purple-500/20' />
 										</div>
 									))}
-								</ScrollArea>
+								</ScrollArea> */}
 							</CardContent>
-							<CardFooter>
+							{/* <CardFooter>
 								<Button
 									variant='ghost'
 									className='w-full hover:bg-purple-500/20 text-purple-300'>
 									View All Activities{" "}
 									<ChevronRight className='ml-2 h-4 w-4' />
 								</Button>
-							</CardFooter>
+							</CardFooter> */}
 						</Card>
 
 						<Card className='bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10'>
@@ -262,7 +268,10 @@ export function UserOverview() {
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
-								<ScrollArea className='h-[300px] pr-4'>
+                                <p className="text-sm">
+                                    No upcoming tasks yet, start engaging with your organizations!
+                                </p>
+								{/* <ScrollArea className='h-[300px] pr-4'>
 									{upcomingTasks.map((task) => (
 										<div
 											key={task.id}
@@ -288,16 +297,16 @@ export function UserOverview() {
 											<Separator className='my-4 bg-purple-500/20' />
 										</div>
 									))}
-								</ScrollArea>
+								</ScrollArea> */}
 							</CardContent>
-							<CardFooter>
+							{/* <CardFooter>
 								<Button
 									variant='ghost'
 									className='w-full hover:bg-purple-500/20 text-purple-300'>
 									View All Tasks{" "}
 									<ChevronRight className='ml-2 h-4 w-4' />
 								</Button>
-							</CardFooter>
+							</CardFooter> */}
 						</Card>
 					</div>
 
@@ -312,24 +321,22 @@ export function UserOverview() {
 							</CardDescription>
 						</CardHeader>
 						<CardContent>
-							<div className='text-4xl font-bold mb-4 text-purple-100'>
+							{/* <div className='text-4xl font-bold mb-4 text-purple-100'>
 								$
-								{organizations
-									.reduce((sum, org) => sum + org.treasury, 0)
-									.toLocaleString()}
-							</div>
+								{organizations && organizations.length > 0 ? organizations.reduce((sum, org) => sum + org.treasury, 0).toLocaleString() : 0}
+							</div> */}
 							<div className='space-y-4'>
-								{organizations.map((org) => (
+								{organizations && organizations.length > 0 && organizations.map((org: Organization) => (
 									<div key={org.id}>
 										<div className='flex justify-between mb-2'>
 											<span className='font-medium text-purple-300'>
 												{org.name}
 											</span>
-											<span className='font-medium text-purple-100'>
+											{/* <span className='font-medium text-purple-100'>
 												${org.treasury.toLocaleString()}
-											</span>
+											</span> */}
 										</div>
-										<Progress
+										{/* <Progress
 											value={
 												(org.treasury /
 													organizations.reduce(
@@ -340,7 +347,7 @@ export function UserOverview() {
 												100
 											}
 											className='h-2 bg-purple-500/20'
-										/>
+										/> */}
 									</div>
 								))}
 							</div>

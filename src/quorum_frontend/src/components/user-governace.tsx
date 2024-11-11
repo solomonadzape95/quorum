@@ -25,13 +25,18 @@ import {
   ArrowUpRight,
   ArrowDownRight,
 } from "lucide-react";
+import { useAppContext } from "@/contexts/AppContext";
+import { Election, Proposal } from "@/types";
+import { Delegation, DelegationState } from "@/declarations/types";
 
 // Mock data
-const activeProposals = [
+const activeProposals:Proposal[] = [
+    
   {
     id: 1,
     title: "Increase Marketing Budget",
     endDate: "2024-07-15",
+    status: 'Active',
     votesFor: 120,
     votesAgainst: 45,
   },
@@ -39,6 +44,7 @@ const activeProposals = [
     id: 2,
     title: "New Partnership with Tech Corp",
     endDate: "2024-07-20",
+    status: 'Active',
     votesFor: 80,
     votesAgainst: 30,
   },
@@ -46,12 +52,13 @@ const activeProposals = [
     id: 3,
     title: "Community Event Funding",
     endDate: "2024-07-25",
+    status: 'Active',
     votesFor: 150,
     votesAgainst: 20,
   },
 ];
 
-const votingHistory = [
+const votingHistory: {id: number, title: string, vote: 'For' | 'Against', result: 'Passed' | 'Failed', date: string}[] = [
   {
     id: 1,
     title: "Upgrade Smart Contract",
@@ -100,7 +107,7 @@ const delegations = {
   ],
 };
 
-const personalProposals = [
+const personalProposals:Proposal[] = [
   {
     id: 1,
     title: "Implement Quadratic Voting",
@@ -126,11 +133,14 @@ const personalProposals = [
 
 export default function UserGovernancePage() {
   const [activeTab, setActiveTab] = useState("active-proposals");
+  
 
-  // Enable dark mode
-  useEffect(() => {
-    document.documentElement.classList.add("dark");
-  }, []);
+  
+
+    const elections = {}
+
+
+
 
   return (
     <div className="min-h-screen bg-[#0F0B15] bg-grid-small-white/[0.2] relative">
@@ -188,7 +198,8 @@ export default function UserGovernancePage() {
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[400px] pr-4">
-                    {activeProposals.map((proposal) => (
+                    {personalProposals.map((proposal: Proposal) => (
+
                       <div key={proposal.id} className="mb-4 last:mb-0">
                         <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
                           <div>
@@ -223,7 +234,7 @@ export default function UserGovernancePage() {
             </TabsContent>
 
             <TabsContent value="voting-history">
-              <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10">
+             {elections ? (<Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10">
                 <CardHeader>
                   <CardTitle className="text-2xl flex items-center text-purple-100">
                     <History className="mr-2 h-6 w-6 text-purple-400" />
@@ -235,7 +246,7 @@ export default function UserGovernancePage() {
                 </CardHeader>
                 <CardContent>
                   <ScrollArea className="h-[400px] pr-4">
-                    {votingHistory.map((vote) => (
+                    {votingHistory.map((vote: {id: number, title: string, vote: 'For' | 'Against', result: 'Passed' | 'Failed', date: string}) => (
                       <div key={vote.id} className="mb-4 last:mb-0">
                         <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
                           <div>
@@ -272,7 +283,7 @@ export default function UserGovernancePage() {
                     ))}
                   </ScrollArea>
                 </CardContent>
-              </Card>
+              </Card>):(<div>You haven't voted in any elections yet.</div>)}
             </TabsContent>
 
             <TabsContent value="delegations">
@@ -284,9 +295,10 @@ export default function UserGovernancePage() {
                       Received Delegations
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+
+                  {elections ? (<CardContent>
                     <ScrollArea className="h-[300px] pr-4">
-                      {delegations.received.map((delegation) => (
+                      {delegations.received.map((delegation: Delegation) => (
                         <div key={delegation.id} className="mb-4 last:mb-0">
                           <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
                             <div className="flex items-center space-x-4">
@@ -296,15 +308,15 @@ export default function UserGovernancePage() {
                                   alt={delegation.from}
                                 />
                                 <AvatarFallback>
-                                  {delegation.from.slice(0, 2).toUpperCase()}
+                                  {delegation?.from?.slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
                                 <h3 className="font-semibold text-purple-100">
-                                  {delegation.from}
+                                  {delegation?.from}
                                 </h3>
                                 <p className="text-sm text-purple-300">
-                                  Delegated: {delegation.amount} votes
+                                  Delegated: {delegation?.amount} votes
                                 </p>
                               </div>
                             </div>
@@ -313,7 +325,7 @@ export default function UserGovernancePage() {
                         </div>
                       ))}
                     </ScrollArea>
-                  </CardContent>
+                  </CardContent>):(<div>You haven't received any delegations yet.</div>)}
                 </Card>
 
                 <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10">
@@ -323,9 +335,10 @@ export default function UserGovernancePage() {
                       Given Delegations
                     </CardTitle>
                   </CardHeader>
-                  <CardContent>
+
+                  {elections ? (<CardContent>
                     <ScrollArea className="h-[300px] pr-4">
-                      {delegations.given.map((delegation) => (
+                      {delegations.given.map((delegation:Delegation) => (
                         <div key={delegation.id} className="mb-4 last:mb-0">
                           <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
                             <div className="flex items-center space-x-4">
@@ -335,7 +348,7 @@ export default function UserGovernancePage() {
                                   alt={delegation.to}
                                 />
                                 <AvatarFallback>
-                                  {delegation.to.slice(0, 2).toUpperCase()}
+                                  {delegation?.to?.slice(0, 2).toUpperCase()}
                                 </AvatarFallback>
                               </Avatar>
                               <div>
@@ -352,7 +365,7 @@ export default function UserGovernancePage() {
                         </div>
                       ))}
                     </ScrollArea>
-                  </CardContent>
+                  </CardContent>):(<div>You haven't given any delegations yet.</div>)}
                 </Card>
               </div>
             </TabsContent>

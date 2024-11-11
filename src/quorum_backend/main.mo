@@ -9,34 +9,35 @@ actor {
     public type User = {
         username: Text;
         displayName: Text;
-        walletAddress: Text;
+        pfp: Text;
+        principalId: Text;
         organizations: [Text];
         elections: [Text];
     };
 
     private var users: HashMap.HashMap<Text, User> = HashMap.HashMap<Text, User>(10, Text.equal, Text.hash);
 
-    public func addUser(username: Text, displayName: Text, walletAddress: Text, organizations: [Text], elections: [Text]): async Bool {
+    public func addUser(username: Text, displayName: Text, pfp: Text, principalId: Text, organizations: [Text], elections: [Text]): async Bool {
         let newUser: User = {
             username = username;
             displayName = displayName;
-            walletAddress = walletAddress;
+            pfp = pfp;
+            principalId = principalId;
             organizations = organizations;
             elections = elections;
         };
-        users.put(walletAddress, newUser);
+        users.put(principalId, newUser);
         return true;
     };
 
-    public func getUser(walletAddress: Text): async ?User {
-        return users.get(walletAddress);
+    public func getUser(principalId: Text): async ?User {
+        return users.get(principalId);
     };
 
-    public func updateUser(walletAddress: Text, displayName: ?Text, organizations: ?[Text], elections: ?[Text]) : async Bool 
+    public func updateUser(principalId: Text, displayName: ?Text, organizations: ?[Text], elections: ?[Text]) : async Bool 
     {
-        switch (users.get(walletAddress)) {
+        switch (users.get(principalId)) {
             case (?existingUser) {
-                // Create a new updated User instance with modified properties
                 let updatedUser = {
                     displayName = switch (displayName) {
                         case (?newDisplayName) newDisplayName;
@@ -51,18 +52,18 @@ actor {
                         case null existingUser.elections;
                     };
                     username = existingUser.username;
-                    walletAddress = existingUser.walletAddress;
+                    pfp = existingUser.pfp;
+                    principalId = existingUser.principalId;
                 };
-                users.put(walletAddress, updatedUser);
+                users.put(principalId, updatedUser);
                 return true;
             };
             case null { return false; }
         };
     };
-    public func deleteUser(walletAddress: Text) : async Bool
+    public func deleteUser(principalId: Text) : async Bool
     {
-        users.remove(walletAddress) != null;
-        
+        return users.remove(principalId) != null;
     };
     public type Organisation = {
         name: Text;
@@ -70,11 +71,12 @@ actor {
         description: Text;
         members: [Text]; //list of user wallet addresses
         electionConducted: [Text]; //this will contain the id of conducted elections
+        admins: [Text]; // New field for admins
     };
     private var organiMap :HashMap.HashMap<Text, Organisation> =HashMap.HashMap<Text, Organisation>(10, Text.equal, Text.hash);
 
 
-    public func addOrgan(name: Text, isPublic: Bool, description: Text, members: [Text], electionConducted: [Text]) : async Bool
+    public func addOrgan(name: Text, isPublic: Bool, description: Text, members: [Text], electionConducted: [Text], admins: [Text]) : async Bool
     {
         let newOrgan : Organisation = {
             name = name;
@@ -82,6 +84,7 @@ actor {
             description = description;
             members = members;
             electionConducted = electionConducted;
+            admins = admins;
         };
         organiMap.put(name, newOrgan);
         return true;
@@ -99,6 +102,7 @@ actor {
             case(?existingOrgan)
             {
                 let updatedOrgan = {
+                    admins = existingOrgan.admins;
                     name = existingOrgan.name;
                     isPublic = switch (isPublic){
                         case (?newisPublic) newisPublic;
@@ -137,62 +141,8 @@ actor {
         description: Text;
         tally: Nat;
     };
-    // private var ContesMap :HashMap.HashMap<Text, Contestants> = HashMap.HashMap<Text, Contestants>(10, Text.equal, Text.hash);
-
-    // public func addContestants(organization: Text, election: Text, name: Text, walletAddress: Text, stake: Nat): async Bool
-    // {
-    //     let newContest: Contestants = {
-    //         organization = organization;
-    //         election = election;
-    //         name = name;
-    //         walletAddress = walletAddress;
-    //         stake = stake;
-    //     };
-    //     ContesMap.put(walletAddress, newContest);
-    //     return true;
-    // };
-
-    // public func getContest(walletAddress: Text): async ?Contestants
-    // {
-    //     return ContesMap.get(walletAddress);
-    // };
-
-    // public func updateContest(walletAddress: Text, organization: ?Text, election: ?Text, name: ?Text, stake: ?Nat): async Bool
-    // {
-    //     switch(ContesMap.get(walletAddress)) {
-    //         case(?existingContest)
-    //         {
-    //             let updatedContest = {
-    //                 walletAddress = existingContest.walletAddress;
-    //                 organization = switch(organization) {
-    //                     case (?neworganization) neworganization;
-    //                     case null existingContest.organization;
-    //                 };
-    //                 election = switch(election) {
-    //                     case (?newelection) newelection;
-    //                     case null existingContest.election;
-    //                 };
-    //                 name = switch(name) {
-    //                     case (?newname) newname;
-    //                     case null existingContest.name;
-    //                 };
-    //                 stake = switch(stake) {
-    //                     case (?newstake) newstake;
-    //                     case null existingContest.stake;
-    //                 };
-    //             };
-    //             ContesMap.put(walletAddress, updatedContest);
-    //             return true;
-    //         };
-    //         case null {return false;};
-            
-    //     };
-    // };
     
-    // public func deleteContest(walletAddress: Text): async Bool
-    // {
-    //     return ContesMap.remove(walletAddress) != null;
-    // }; 
+    
 
     public type Election = {
       electionId: Text;
@@ -215,7 +165,7 @@ actor {
     
     public func getElec(electionId: Text): async ?Election 
     {
-      elecMap.get(electionId);
+      return elecMap.get(electionId);
     };
     public func vote(electionId: Text, candidateId: Text): async Bool {
     switch (elecMap.get(electionId)) {
@@ -246,80 +196,74 @@ actor {
 };
 
 
-    public func joinOrgan(walletAddress: Text, newOrgan: Text): async Bool 
+    public func joinOrgan(principalId: Text, newOrgan: Text): async Bool 
     {
-        switch (users.get(walletAddress)) {
-            case (?User) {
-                // Create a new User record with updated organizations
+        switch (users.get(principalId)) {
+            case (?existingUser) {
                 let updatedUser = {
-                    username = User.username;
-                    displayName = User.displayName;
-                    walletAddress = User.walletAddress;
-                    organizations = Array.append(User.organizations, [newOrgan]);  // Append new organization
-                    elections = User.elections;
+                    username = existingUser.username;
+                    displayName = existingUser.displayName;
+                    pfp = existingUser.pfp;
+                    principalId = existingUser.principalId;
+                    organizations = Array.append(existingUser.organizations, [newOrgan]);
+                    elections = existingUser.elections;
                 };
-                users.put(walletAddress, updatedUser);
+                users.put(principalId, updatedUser);
                 return true;
             };
-            case null { return false; }  // User not found
+            case null { return false; }
         };
     };
-    public func addMember(name: Text, walletAddress: Text): async Bool 
+    public func addMember(name: Text, principalId: Text): async Bool 
     {
         switch (organiMap.get(name)) {
-            case (?Organization) {
-                // Create a new User record with updated organizations
+            case (?existingOrgan) {
                 let updatedOrgan = {
-                    name = Organization.name;
-                    isPublic = Organization.isPublic;
-                    description = Organization.description;
-                    members = Array.append(Organization.members, [walletAddress]);
-                    electionConducted = Organization.electionConducted;
+                    name = existingOrgan.name;
+                    isPublic = existingOrgan.isPublic;
+                    description = existingOrgan.description;
+                    members = Array.append(existingOrgan.members, [principalId]);
+                    electionConducted = existingOrgan.electionConducted;
+                    admins = existingOrgan.admins;
                 };
                 organiMap.put(name, updatedOrgan);
                 return true;
             };
-            case null { return false; };  // User not found
+            case null { return false; };
         };
     };
 
-    // public func remMember(name: Text, walletAddress: Text) : async Bool
-    // {
 
-    // }
-    public func leaveOrgan(walletAddress: Text, organName: Text): async Bool 
+    public func leaveOrgan(principalId: Text, organName: Text): async Bool 
     {
-      switch (users.get(walletAddress)) {
+      switch (users.get(principalId)) {
           case (?existingUser) {
-              // Filter out the organization to be removed
               let updatedOrgan = Array.filter(existingUser.organizations, func(org: Text):Bool {
                   org != organName
               });
-
-              // Create a new user record with the updated organizations
               let updatedUser = {
                   username = existingUser.username;
                   displayName = existingUser.displayName;
-                  walletAddress = existingUser.walletAddress;
+                  pfp = existingUser.pfp;
+                  principalId = existingUser.principalId;
                   organizations = updatedOrgan;
                   elections = existingUser.elections;
               };
-
-              // Update the user in the HashMap
-              users.put(walletAddress, updatedUser);
+              users.put(principalId, updatedUser);
               return true;
           };
           case null { return false; };
       };
     };
-    public func remMember(name: Text, walletAddress: Text): async Bool
+
+    public func remMember(name: Text, principalId: Text): async Bool
     {
       switch(organiMap.get(name))
       {
         case(?existingOrgan){
           let updatedUser = Array.filter(existingOrgan.members, func(use: Text): Bool
           {
-            use != walletAddress
+            use != principalId
           });
           let updatedOrgan = {
             name =existingOrgan.name;
@@ -327,12 +271,20 @@ actor {
             description = existingOrgan.description;
             members = updatedUser;
             electionConducted = existingOrgan.electionConducted;
+            admins = existingOrgan.admins;
           };
           organiMap.put(name, updatedOrgan);
           return true;
         };
         case null {return false; };
       };
+    };
+
+    public func isNewUser(principalId: Text) : async Bool {
+        switch (users.get(principalId)) {
+            case (null) { return true; };  
+            case (?user) { return false; }; 
+        };
     };
 
 };
