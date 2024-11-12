@@ -11,7 +11,7 @@ import { User } from "../../../declarations/quorum_backend/quorum_backend.did";
 
 interface GlobalState {
 	view: "user" | "org";
-	activeTeam: string;
+	teamId: string;
 	isAuthenticated: boolean;
 	principal: string | null;
 	user: User | null;
@@ -19,7 +19,7 @@ interface GlobalState {
 
 interface AppContextType {
 	globals: GlobalState;
-	updateView: (view: "user" | "org") => void;
+	updateView: (view: "user" | "org", teamId: string) => void;
 	login: () => Promise<void>;
 	logout: () => Promise<void>;
 	authClient: AuthClient | null;
@@ -33,7 +33,7 @@ export function ContextProvider({ children }: { children: ReactNode }) {
 	// Initialize state with localStorage values and auth state
 	const [globals, setGlobals] = useState<GlobalState>(() => ({
 		view: (localStorage.getItem("view") as "user" | "org") || "user",
-		activeTeam: localStorage.getItem("activeTeam") || "user",
+		teamId: localStorage.getItem("teamId") || "user",
 		isAuthenticated: false,
 		principal: null,
 		user: null,
@@ -74,16 +74,17 @@ export function ContextProvider({ children }: { children: ReactNode }) {
 	async function logout() {
 		if (!authClient) return;
 
-		await authClient.logout();
-		setGlobals((g) => ({ ...g, isAuthenticated: false, principal: null }));
 		localStorage.removeItem("view");
 		localStorage.removeItem("activeTeam");
+		localStorage.clear();
+		await authClient.logout();
+		setGlobals((g) => ({ ...g, isAuthenticated: false, principal: null }));
 	}
 
 	function updateView(view: "user" | "org", teamId: string) {
 		setGlobals((g) => ({ ...g, view}));
 		localStorage.setItem("view", view);
-		// localStorage.setItem("activeTeam", teamId);
+		localStorage.setItem("activeTeam", teamId);
 	}
 
 	return (

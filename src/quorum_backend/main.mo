@@ -72,11 +72,12 @@ actor {
         members: [Text]; //list of user wallet addresses
         electionConducted: [Text]; //this will contain the id of conducted elections
         admins: [Text]; // New field for admins
+        pfp: Text;  // Added pfp field
     };
     private var organiMap :HashMap.HashMap<Text, Organisation> =HashMap.HashMap<Text, Organisation>(10, Text.equal, Text.hash);
 
 
-    public func addOrgan(name: Text, isPublic: Bool, description: Text, members: [Text], electionConducted: [Text], admins: [Text]) : async Bool
+    public func addOrgan(name: Text, isPublic: Bool, description: Text, members: [Text], electionConducted: [Text], admins: [Text], pfp: Text) : async Bool
     {
         let newOrgan : Organisation = {
             name = name;
@@ -85,6 +86,7 @@ actor {
             members = members;
             electionConducted = electionConducted;
             admins = admins;
+            pfp = pfp;
         };
         organiMap.put(name, newOrgan);
         return true;
@@ -95,7 +97,7 @@ actor {
         return organiMap.get(name);
     };
 
-    public func updateOrgan(name: Text, isPublic: ?Bool, description: ?Text, members: ?[Text], electionConducted: ?[Text]): async Bool
+    public func updateOrgan(name: Text, isPublic: ?Bool, description: ?Text, members: ?[Text], electionConducted: ?[Text], pfp: ?Text): async Bool
     {
         switch(organiMap.get(name))
         {
@@ -117,10 +119,12 @@ actor {
                         case null existingOrgan.members;
                     };
                     electionConducted = switch (electionConducted){
-                        case (?newelectionConducted) {
-                            newelectionConducted;
-                        };
+                        case (?newelectionConducted) newelectionConducted;
                         case null existingOrgan.electionConducted;
+                    };
+                    pfp = switch (pfp){
+                        case (?newPfp) newPfp;
+                        case null existingOrgan.pfp;
                     };
                 };
                 organiMap.put(name, updatedOrgan);
@@ -148,19 +152,28 @@ actor {
       electionId: Text;
       description: Text;
       contestants: [Contestants];
+      startDate: Text;
+      endDate: Text;
     }; 
 
     private var elecMap: HashMap.HashMap<Text, Election> = HashMap.HashMap<Text, Election>(10, Text.equal, Text.hash);
 
-    public func createElec(electionId: Text, description: Text, contestants: [Contestants]): async Bool
-    {
-      let newElection : Election = {
-        electionId = electionId;
-        description = description;
-        contestants = contestants;
-      };
-      elecMap.put(electionId, newElection);
-      return  true;
+    public func createElec(
+        electionId: Text, 
+        description: Text, 
+        contestants: [Contestants],
+        startDate: Text,
+        endDate: Text
+    ): async Bool {
+        let newElection : Election = {
+            electionId = electionId;
+            description = description;
+            contestants = contestants;
+            startDate = startDate;
+            endDate = endDate;
+        };
+        elecMap.put(electionId, newElection);
+        return true;
     };
     
     public func getElec(electionId: Text): async ?Election 
@@ -170,22 +183,28 @@ actor {
     public func vote(electionId: Text, candidateId: Text): async Bool {
     switch (elecMap.get(electionId)) {
         case (?election) {
-            // Explicitly specify the type of contestant
-            let updatedContestants = Array.map<Contestants, Contestants>(election.contestants, func(contestant) {
-                if (contestant.contestantId == candidateId) {
-                    // Return a new contestant with updated tally
-                    { contestantId = contestant.contestantId; name = contestant.name; description = contestant.description; tally = contestant.tally + 1 };
-                } else {
-                    // Return the contestant as-is if no match
-                    contestant;
+            let updatedContestants = Array.map<Contestants, Contestants>(
+                election.contestants, 
+                func(contestant) {
+                    if (contestant.contestantId == candidateId) {
+                        { 
+                            contestantId = contestant.contestantId; 
+                            name = contestant.name; 
+                            description = contestant.description; 
+                            tally = contestant.tally + 1 
+                        };
+                    } else {
+                        contestant;
+                    }
                 }
-            });
+            );
 
-            // Update the election record with updated contestants
             let updatedElection = {
                 description = election.description;
                 electionId = election.electionId;
-                contestants = updatedContestants
+                contestants = updatedContestants;
+                startDate = election.startDate;
+                endDate = election.endDate;
             };
 
             elecMap.put(electionId, updatedElection);
@@ -225,6 +244,7 @@ actor {
                     members = Array.append(existingOrgan.members, [principalId]);
                     electionConducted = existingOrgan.electionConducted;
                     admins = existingOrgan.admins;
+                    pfp = existingOrgan.pfp;
                 };
                 organiMap.put(name, updatedOrgan);
                 return true;
@@ -272,6 +292,7 @@ actor {
             members = updatedUser;
             electionConducted = existingOrgan.electionConducted;
             admins = existingOrgan.admins;
+            pfp = existingOrgan.pfp;
           };
           organiMap.put(name, updatedOrgan);
           return true;

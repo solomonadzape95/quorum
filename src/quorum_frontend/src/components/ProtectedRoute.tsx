@@ -1,6 +1,7 @@
 import { useAppContext } from "../contexts/AppContext";
 import { Navigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
+import Layout from "./bot";
 
 function ProtectedRoute({ children }: { children: React.ReactNode }) {
 	const { globals, authClient } = useAppContext();

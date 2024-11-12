@@ -8,8 +8,8 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { quorum_backend } from "../../../declarations/quorum_backend";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Progress } from "./ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -25,7 +25,12 @@ import {
   CheckCircle2,
   XCircle,
   Clock,
+  Loader2,
 } from "lucide-react";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+import ElectionCreationForm from "@/components/forms/elections";
+import { Dialog, DialogContent, DialogTrigger } from "@/components/ui/dialog";
+import { cn } from "@/lib/utils";
 
 // Mock data
 const proposals = [
@@ -87,11 +92,154 @@ const activeVotes = [
 
 export default function OrgGovernancePage() {
   const [activeTab, setActiveTab] = useState("proposals");
+  const [isLoading, setIsLoading] = useState<boolean>(false)
+  const [error, setError] = useState<string | null>('')
+  const [organization, setOrganization] = useState<any>(null)
+const navigate = useNavigate()
+const location = useLocation()
+const { orgid } = useParams();
+const [showElectionModal, setShowElectionModal] = useState(false);
+const [elections, setElections] = useState<any[]>([]);
+const [isLoadingElections, setIsLoadingElections] = useState(false);
+const [electionError, setElectionError] = useState<string | null>(null);
 
-  // Enable dark mode
+	useEffect(() => {
+		const fetchOrganizationData = async () => {
+			try {
+				setIsLoading(true);
+				setError(null);
+				// Convert URL-safe name back to original format
+				const orgName = location.pathname.split('/')[3]?.replace(/\+/g, ' ');
+				
+				if (!orgName) {
+					throw new Error('Organization name is required');
+				}
+                console.log(orgName, "orgName")
+
+				const orgData = await quorum_backend.getOrgan(orgName);
+				console.log(";hfjdsfdfdsn")
+				if (orgData && orgData.length > 0) {
+                    // Transform the data to match your UI needs
+                    console.log(";efwfwfwfwf")
+					const transformedData = {
+						...orgData[0],
+						treasury: 1500, // Add default values for missing fields
+						treasuryChange: 2.4,
+						memberCount: orgData[0]?.members?.length || 0,
+						memberChange: 80,
+						memberActivity: 65,
+						activeProposals: 0,
+						// Add other required fields with default values
+					};
+					console.log(transformedData, "transformedData")
+					setOrganization(transformedData);
+				} else {
+					throw new Error('Organization not found');
+				}
+			} catch (err) {
+				console.error('Error fetching organization:', err);
+				setError(err instanceof Error ? err.message : 'Failed to fetch organization data');
+				navigate('/dashboard/organizations'); // Redirect on error
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchOrganizationData();
+	}, [location, navigate]);
+
+  const fetchOrganizationElections = async () => {
+    if (!organization) return;
+    
+    try {
+        setIsLoadingElections(true);
+        setElectionError(null);
+        
+        const electionIds = organization.electionConducted || [];
+        
+        const electionPromises = electionIds.map(async (electionId: string) => {
+            const election : any= await quorum_backend.getElec(electionId);
+            if (election) {
+                const now = new Date();
+                const startDate = new Date(election.startDate);
+                const endDate = new Date(election.endDate);
+                
+                let status = "Upcoming";
+                if (now > endDate) {
+                    status = "Completed";
+                } else if (now >= startDate && now <= endDate) {
+                    status = "Active";
+                }
+                
+                return {
+                    ...election,
+                    status,
+                    id: electionId,
+                    formattedStartDate: new Date(election.startDate).toLocaleDateString(),
+                    formattedEndDate: new Date(election.endDate).toLocaleDateString()
+                };
+            }
+            return null;
+        });
+
+        const electionResults = await Promise.all(electionPromises);
+        const validElections = electionResults.filter(e => e !== null);
+        
+        setElections(validElections);
+    } catch (error) {
+        console.error("Error fetching elections:", error);
+        setElectionError("Failed to load elections");
+    } finally {
+        setIsLoadingElections(false);
+    }
+  };
+
   useEffect(() => {
-    document.documentElement.classList.add("dark");
-  }, []);
+    fetchOrganizationElections();
+  }, [organization]);
+
+  const handleElectionCreate = async (formData: any) => {
+    try {
+        const contestants = formData.candidates.map((candidate: any, index: number) => ({
+            contestantId: `${index + 1}`,
+            name: candidate.name,
+            description: candidate.mandate,
+            tally: 0
+        }));
+
+        const electionId = `${organization.name}_${Date.now()}`;
+        navigate(`/dashboard/organizations/${organization.name}/voting/`);
+        // Format dates to ISO string
+        const startDate = formData.startDate.toISOString();
+        const endDate = formData.endDate.toISOString();
+
+        const success = await quorum_backend.createElec(
+            electionId,
+            formData.description,
+            contestants,
+            startDate,
+            endDate
+        );
+
+        if (success) {
+            // Update the organization's electionConducted array
+            const updatedElectionIds = [...(organization.electionConducted || []), electionId];
+            await quorum_backend.updateOrgan(
+                organization.name,
+                [true],
+                [],
+                [],
+                updatedElectionIds as any,
+                []
+            );
+            
+            setShowElectionModal(false);
+            await fetchOrganizationElections();
+        }
+    } catch (error) {
+        console.error("Error creating election:", error);
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#0F0B15] bg-grid-small-white/[0.2] relative">
@@ -140,10 +288,10 @@ export default function OrgGovernancePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[300px] pr-4">
-                      {proposals
-                        .filter((p) => p.status === "Active")
-                        .map((proposal) => (
+                   {organization?.proposals ? <ScrollArea className="h-[300px] pr-4">
+                      {organization?.proposals
+                        .filter((p: any) => p.status === "Active")
+                        .map((proposal: any) => (
                           <div key={proposal.id} className="mb-4 last:mb-0">
                             <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
                               <div>
@@ -161,10 +309,10 @@ export default function OrgGovernancePage() {
                             <Separator className="my-4 bg-purple-500/20" />
                           </div>
                         ))}
-                    </ScrollArea>
+                    </ScrollArea> : <div>No active proposals</div>}
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+                    <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white" disabled>
                       <PlusCircle className="mr-2 h-4 w-4" />
                       Create New Proposal
                     </Button>
@@ -179,10 +327,10 @@ export default function OrgGovernancePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[300px] pr-4">
-                      {proposals
-                        .filter((p) => p.status !== "Active")
-                        .map((proposal) => (
+                   {organization?.proposals ? <ScrollArea className="h-[300px] pr-4">
+                      {organization?.proposals
+                        .filter((p:any) => p.status !== "Active")
+                        .map((proposal:any) => (
                           <div key={proposal.id} className="mb-4 last:mb-0">
                             <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
                               <div>
@@ -206,14 +354,14 @@ export default function OrgGovernancePage() {
                             <Separator className="my-4 bg-purple-500/20" />
                           </div>
                         ))}
-                    </ScrollArea>
+                    </ScrollArea> : <div>No past proposals</div>}
                   </CardContent>
                   <CardFooter>
                     <Button
                       variant="outline"
-                      className="w-full border-purple-500 hover:bg-purple-500/20 text-purple-300"
+                      className="w-full border-purple-500 hover:bg-purple-500/20 text-purple-300" disabled={!organization?.proposals}
                     >
-                      View All Past Proposals
+                     {organization?.proposals ? 'View All Past Proposals' : 'No Past Proposals'}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -230,45 +378,61 @@ export default function OrgGovernancePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[300px] pr-4">
-                      {elections
-                        .filter(
-                          (e) =>
-                            e.status === "Active" || e.status === "Upcoming"
-                        )
-                        .map((election) => (
-                          <div key={election.id} className="mb-4 last:mb-0">
-                            <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
-                              <div>
-                                <h3 className="font-semibold text-purple-100">
-                                  {election.title}
-                                </h3>
-                                <p className="text-sm text-purple-300 mt-1">
-                                  Candidates: {election.candidates}
-                                </p>
-                                <p className="text-sm text-purple-300">
-                                  Ends: {election.endDate}
-                                </p>
-                              </div>
-                              <Badge
-                                className={
-                                  election.status === "Active"
-                                    ? "bg-green-500/20 text-green-300"
-                                    : "bg-yellow-500/20 text-yellow-300"
-                                }
-                              >
-                                {election.status}
-                              </Badge>
-                            </div>
-                            <Separator className="my-4 bg-purple-500/20" />
-                          </div>
-                        ))}
-                    </ScrollArea>
+                    {isLoadingElections ? (
+                        <div className="flex justify-center items-center h-[300px]">
+                            <Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+                        </div>
+                    ) : electionError ? (
+                        <div className="text-red-400 text-center h-[300px] flex items-center justify-center">
+                            {electionError}
+                        </div>
+                    ) : elections.length > 0 ? (
+                        <ScrollArea className="h-[300px] pr-4">
+                            {elections
+                                .filter(e => e.status === "Active")
+                                .map((election) => (
+                                    <div key={election.id} className="mb-4 last:mb-0">
+                                        <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
+                                            <div>
+                                                <h3 className="font-semibold text-purple-100">
+                                                    {election.description}
+                                                </h3>
+                                                <p className="text-sm text-purple-300 mt-1">
+                                                    Candidates: {election.contestants.length}
+                                                </p>
+                                                <p className="text-sm text-purple-300">
+                                                    {election.formattedStartDate} - {election.formattedEndDate}
+                                                </p>
+                                            </div>
+                                            <Badge
+                                                className={cn(
+                                                    "bg-purple-500/20 text-purple-300",
+                                                    election.status === "Active" && "bg-green-500/20 text-green-300",
+                                                    election.status === "Completed" && "bg-gray-500/20 text-gray-300"
+                                                )}
+                                            >
+                                                {election.status}
+                                            </Badge>
+                                        </div>
+                                        <Separator className="my-4 bg-purple-500/20" />
+                                    </div>
+                                ))}
+                        </ScrollArea>
+                    ) : (
+                        <div className="text-purple-300 text-center">No active elections</div>
+                    )}
                   </CardContent>
                   <CardFooter>
-                    <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
-                      View Candidate Profiles
-                    </Button>
+                    <Dialog open={showElectionModal} onOpenChange={setShowElectionModal}>
+                        <DialogTrigger asChild>
+                            <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
+                                <PlusCircle className="mr-2 h-4 w-4" /> Create Election
+                            </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-4xl">
+                            <ElectionCreationForm onSubmit={handleElectionCreate} />
+                        </DialogContent>
+                    </Dialog>
                   </CardFooter>
                 </Card>
 
@@ -280,10 +444,10 @@ export default function OrgGovernancePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[300px] pr-4">
-                      {elections
-                        .filter((e) => e.status === "Completed")
-                        .map((election) => (
+                  {organization?.elections ? <ScrollArea className="h-[300px] pr-4">
+                      {organization?.elections
+                        .filter((e:any) => e.status === "Completed")
+                        .map((election:any) => (
                           <div key={election.id} className="mb-4 last:mb-0">
                             <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
                               <div>
@@ -304,14 +468,14 @@ export default function OrgGovernancePage() {
                             <Separator className="my-4 bg-purple-500/20" />
                           </div>
                         ))}
-                    </ScrollArea>
+                    </ScrollArea> : <div>No election history</div>}
                   </CardContent>
                   <CardFooter>
                     <Button
                       variant="outline"
-                      className="w-full border-purple-500 hover:bg-purple-500/20 text-purple-300"
+                      className="w-full border-purple-500 hover:bg-purple-500/20 text-purple-300" disabled={!organization?.elections}
                     >
-                      View Full Election History
+                     {organization?.elections ? 'View Full Election History' : 'No Election History'}
                     </Button>
                   </CardFooter>
                 </Card>
@@ -328,8 +492,8 @@ export default function OrgGovernancePage() {
                     </CardTitle>
                   </CardHeader>
                   <CardContent>
-                    <ScrollArea className="h-[300px] pr-4">
-                      {activeVotes.map((vote) => (
+                   {organization?.votes ? <ScrollArea className="h-[300px] pr-4">
+                      {activeVotes.map((vote:any) => (
                         <div key={vote.id} className="mb-4 last:mb-0">
                           <div className="flex items-center justify-between p-4 rounded-lg bg-purple-500/10">
                             <div>
@@ -350,7 +514,7 @@ export default function OrgGovernancePage() {
                           <Separator className="my-4 bg-purple-500/20" />
                         </div>
                       ))}
-                    </ScrollArea>
+                    </ScrollArea> : <div>No active votes</div>}
                   </CardContent>
                 </Card>
 

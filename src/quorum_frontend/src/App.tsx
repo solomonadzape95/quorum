@@ -14,6 +14,8 @@ import DashboardLayout from "./components/DashboardLayout";
 import ProtectedRoute from "./components/ProtectedRoute";
 import LoginPage from "./pages/LoginPage";
 import Onboarding from "./components/Onboarding";
+import ElectionView from "./components/voting";
+import Layout from "./components/bot";
 
 const router = createBrowserRouter([
 	{
@@ -76,6 +78,10 @@ const router = createBrowserRouter([
 						path: "members",
 						element: <OrgMembersPage />,
 					},
+					{
+						path: "voting",
+						element: <ElectionView />,
+					},
 				],
 			},
 
@@ -111,7 +117,7 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return <div className="flex flex-col min-h-screen"><RouterProvider router={router} /><Layout/></div>;
 }
 
 export default App;

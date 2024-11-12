@@ -39,7 +39,7 @@ export default function OrganizationCreationForm({
   onSubmit,
   onClose,
 }: {
-  onSubmit: (name: string, description: string, admins: string[]) => void;
+  onSubmit: (name: string, description: string, admins: string[], pfp: string) => void;
   onClose: () => void;
 }) {
   const [step, setStep] = useState(1);
@@ -140,51 +140,58 @@ export default function OrganizationCreationForm({
     setIsLoading(true);
 
     try {
-      // Convert comma-separated admins string to array and take first 3
-      const adminsList = formData.admins
-        .split(',')
-        .map(admin => admin.trim())
-        .filter(admin => admin !== '')
-        .slice(0, 3);
+        // Convert comma-separated admins string to array and take first 3
+        const adminsList = formData.admins
+            .split(',')
+            .map(admin => admin.trim())
+            .filter(admin => admin !== '')
+            .slice(0, 3);
 
-      // Ensure exactly 3 admins
-      if (adminsList.length !== 3) {
-        setErrors(prev => ({
-          ...prev,
-          admins: "Exactly 3 admins are required"
-        }));
-        setIsLoading(false);
-        return;
-      }
+        // Ensure exactly 3 admins
+        if (adminsList.length !== 3) {
+            setErrors(prev => ({
+                ...prev,
+                admins: "Exactly 3 admins are required"
+            }));
+            setIsLoading(false);
+            return;
+        }
 
-      // Call the backend canister's addOrgan function
-      const success = await quorum_backend.addOrgan(
-        formData.name,           // name
-        !formData.private,       // isPublic
-        formData.description,    // description
-        adminsList,             // members (initially just admins)
-        [],                     // electionConducted (empty initially)
-        adminsList              // admins
-      );
+        // Convert File to URL string if it exists
+        let pfpUrl = "";
+        if (formData.profilePicture) {
+            pfpUrl = URL.createObjectURL(formData.profilePicture);
+        }
 
-      if (!success) {
-        throw new Error('Failed to create organization');
-      }
-      console.log("Organization created successfully",success);
-      // Call the onSubmit callback with the created organization details
-      onSubmit(formData.name, formData.description, adminsList);
-      onClose();
+        // Call the backend canister's addOrgan function
+        const success = await quorum_backend.addOrgan(
+            formData.name,           // name    
+            !formData.private,       // isPublic
+            formData.description,    // description 
+            adminsList,              // members (initially just admins)
+            [],                      // electionConducted (empty initially)
+            adminsList,              // admins
+            pfpUrl                   // pfp - now using URL string
+        );
+
+        if (!success) {
+            throw new Error('Failed to create organization');
+        }
+
+        // Call the onSubmit callback with the created organization details
+        onSubmit(formData.name, formData.description, adminsList, pfpUrl);
+        onClose();
 
     } catch (error) {
-      console.error("Error creating organization:", error);
-      setErrors(prev => ({
-        ...prev,
-        submit: "Failed to create organization. Please try again."
-      }));
+        console.error("Error creating organization:", error);
+        setErrors(prev => ({
+            ...prev,
+            submit: "Failed to create organization. Please try again."
+        }));
     } finally {
-      setIsLoading(false);
+        setIsLoading(false);
     }
-  };
+};
 
   const isStepValid = () => {
     switch (step) {
@@ -307,6 +314,22 @@ export default function OrganizationCreationForm({
                       <p className="text-red-400 text-sm mt-1">
                         {errors.profilePicture}
                       </p>
+                    )}
+                  </div>
+                  <div>
+                    <Label htmlFor="description" className="text-purple-100">
+                      Organization Description
+                    </Label>
+                    <Textarea
+                      id="description"
+                      name="description"
+                      value={formData.description}
+                      onChange={handleInputChange}
+                      className="bg-purple-500/10 border-purple-500/20 text-purple-100 placeholder-purple-300"
+                      placeholder="Enter organization description"
+                    />
+                    {errors.description && (
+                      <p className="text-red-400 text-sm mt-1">{errors.description}</p>
                     )}
                   </div>
                 </div>

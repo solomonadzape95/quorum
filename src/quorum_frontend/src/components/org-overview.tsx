@@ -32,81 +32,78 @@ import { useEffect, useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAppContext } from "@/contexts/AppContext";
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
-import { Outlet, useLocation, useParams } from "react-router-dom";
-// Mock data remains the same as previous example
-
-const organizationData = {
-	id: 1,
-	name: "DAO Innovators",
-	description:
-		"A cutting-edge organization focused on blockchain innovation and decentralized governance.",
-	profilePic: "/placeholder.svg?height=128&width=128",
-	activeProposals: 3,
-	treasury: 1500000,
-	treasuryChange: 5.2,
-	memberCount: 1200,
-	memberChange: 3.1,
-	memberActivity: 85,
-	recentVotes: [
-		{
-			id: 1,
-			title: "Upgrade smart contract",
-			status: "Passed",
-			votesFor: 800,
-			votesAgainst: 150,
-		},
-		{
-			id: 2,
-			title: "Increase marketing budget",
-			status: "Active",
-			votesFor: 500,
-			votesAgainst: 300,
-		},
-		{
-			id: 3,
-			title: "New partnership proposal",
-			status: "Failed",
-			votesFor: 400,
-			votesAgainst: 600,
-		},
-	],
-	upcomingVotes: [
-		{ id: 1, title: "Q3 Budget Allocation", date: "2024-07-01" },
-		{ id: 2, title: "New Member Onboarding Process", date: "2024-07-15" },
-	],
-	recentActivities: [
-		{
-			id: 1,
-			type: "proposal_created",
-			description: "New marketing strategy proposal",
-			timestamp: "2024-06-10T14:30:00Z",
-		},
-		{
-			id: 2,
-			type: "funds_transferred",
-			description: "50,000 USDC transferred to development fund",
-			timestamp: "2024-06-09T10:15:00Z",
-		},
-		{
-			id: 3,
-			type: "member_joined",
-			description: "Alice (0x1234...abcd) joined the organization",
-			timestamp: "2024-06-08T16:45:00Z",
-		},
-	],
-};
+import { Outlet, useLocation, useParams, useNavigate, Link } from "react-router-dom";
+import { quorum_backend } from "../../../declarations/quorum_backend";
+import { Loader2 } from "lucide-react";
 
 export function OrganizationOverview() {
 	const [activeTab, setActiveTab] = useState("overview");
-	const { orgId } = useParams();
+	const { orgid } = useParams();
+	const navigate = useNavigate();
 	const location = useLocation();
-	// Enable dark mode
-	useEffect(() => {
-		document.documentElement.classList.add("dark");
-	}, []);
+	const [organization, setOrganization] = useState<any>(null);
+	const [isLoading, setIsLoading] = useState(true);
+	const [error, setError] = useState<string | null>(null);
 
-	// const isBasePath =
-	// 	location.pathname === `/dashboard/organizations/${orgId}`;
+	useEffect(() => {
+		const fetchOrganizationData = async () => {
+			try {
+				setIsLoading(true);
+				setError(null);
+
+				// Convert URL-safe name back to original format
+				const orgName = location.pathname.split('/').pop()?.replace(/\+/g, ' ');
+				
+				if (!orgName) {
+					throw new Error('Organization name is required');
+				}
+
+				const orgData = await quorum_backend.getOrgan(orgName);
+				
+				if (orgData && orgData.length > 0) {
+					// Transform the data to match your UI needs
+					const transformedData = {
+						...orgData[0],
+						treasury: 1500, // Add default values for missing fields
+						treasuryChange: 2.4,
+						memberCount: orgData[0]?.members?.length || 0,
+						memberChange: 80,
+						memberActivity: 65,
+						activeProposals: 0,
+						// Add other required fields with default values
+					};
+					
+					setOrganization(transformedData);
+				} else {
+					throw new Error('Organization not found');
+				}
+			} catch (err) {
+				console.error('Error fetching organization:', err);
+				setError(err instanceof Error ? err.message : 'Failed to fetch organization data');
+				navigate('/dashboard/organizations'); // Redirect on error
+			} finally {
+				setIsLoading(false);
+			}
+		};
+
+		fetchOrganizationData();
+	}, [orgid, navigate]);
+
+	if (isLoading) {
+		return (
+			<div className="min-h-screen bg-[#0F0B15] flex items-center justify-center">
+				<Loader2 className="h-8 w-8 animate-spin text-purple-500" />
+			</div>
+		);
+	}
+
+	if (error || !organization) {
+		return (
+			<div className="min-h-screen bg-[#0F0B15] flex items-center justify-center">
+				<div className="text-red-400">{error || 'Organization not found'}</div>
+			</div>
+		);
+	}
 
 	return (
 		<>
@@ -118,29 +115,48 @@ export function OrganizationOverview() {
 							<div className='flex items-center flex-col md:flex-row  space-x-6'>
 								<Avatar className='w-24 h-24 border-4 border-purple-500 rounded flex justify-center items-center mb-4 md:m-0'>
 									<AvatarImage
-										src={organizationData.profilePic}
-										alt={organizationData.name}
+										src={organization.pfp || "/placeholder.svg"}
+										alt={organization.name}
 									/>
 									<AvatarFallback>
-										{organizationData.name
+										{organization.name
 											.slice(0, 2)
 											.toUpperCase()}
 									</AvatarFallback>
 								</Avatar>
 								<div>
 									<h1 className='text-4xl font-bold bg-gradient-to-r from-purple-600 to-fuchsia-500 bg-clip-text text-center md:text-left text-transparent'>
-										{organizationData.name}
+										{organization.name}
 									</h1>
 									<p className='text-purple-300 mt-2 text-sm md:text-base text-center md:text-left'>
-										{organizationData.description}
+										{organization.description}
 									</p>
 								</div>
 							</div>
+							<Link 
+                                to={`/dashboard/organizations/${organization.name.split(' ').join('+')}/governance`}
+								className="bg-purple-500 hover:bg-purple-600 flex items-center gap-2"
+							>
+								<Vote className="h-4 w-4" />
+								Governance
+							</Link><Link 
+                                to={`/dashboard/organizations/${organization.name.split(' ').join('+')}/members`}
+								className="bg-purple-500 hover:bg-purple-600 flex items-center gap-2"
+							>
+								<Vote className="h-4 w-4" />
+								Members
+							</Link><Link 
+                                to={`/dashboard/organizations/${organization.name.split(' ').join('+')}/analytics`}
+								className="bg-purple-500 hover:bg-purple-600 flex items-center gap-2"
+							>
+								<Vote className="h-4 w-4" />
+								analytics
+							</Link>
 						</header>
 
 						<Tabs
 							value={activeTab}
-							onValueChange={setActiveTab}
+							onValueChange={setActiveTab}    
 							className='space-y-4'>
 							<TabsList className='bg-purple-500/10 p-1'>
 								<TabsTrigger
@@ -173,24 +189,24 @@ export function OrganizationOverview() {
 											<div className='flex justify-between items-center'>
 												<p className='text-3xl font-bold text-purple-100'>
 													$
-													{organizationData.treasury.toLocaleString()}
+													{organization.treasury.toLocaleString()}
 												</p>
 												<Badge
 													variant='outline'
 													className={`flex items-center ${
-														organizationData.treasuryChange >=
+														organization.treasuryChange >=
 														0
 															? "text-green-400 border-green-400"
 															: "text-red-400 border-red-400"
 													}`}>
-													{organizationData.treasuryChange >=
+													{organization.treasuryChange >=
 													0 ? (
 														<ArrowUpRight className='mr-1 h-4 w-4' />
 													) : (
 														<ArrowDownRight className='mr-1 h-4 w-4' />
 													)}
 													{Math.abs(
-														organizationData.treasuryChange
+														organization.treasuryChange
 													)}
 													%
 												</Badge>
@@ -200,7 +216,7 @@ export function OrganizationOverview() {
 												className='h-2 bg-purple-500/20'
 											/>
 											<p className='text-sm text-purple-300'>
-												75% of yearly budget utilized
+												{organization.budgetUtilization ? organization.budgetUtilization.toFixed(2) : 0}% of yearly budget utilized
 											</p>
 										</CardContent>
 									</Card>
@@ -215,24 +231,24 @@ export function OrganizationOverview() {
 										<CardContent className='space-y-4'>
 											<div className='flex justify-between items-center'>
 												<p className='text-3xl font-bold text-purple-100'>
-													{organizationData.memberCount.toLocaleString()}
+													{organization.memberCount.toLocaleString()}
 												</p>
 												<Badge
 													variant='outline'
-													className={`flex items-center ${
-														organizationData.memberChange >=
-														0
-															? "text-green-400 border-green-400"
-															: "text-red-400 border-red-400"
-													}`}>
-													{organizationData.memberChange >=
-													0 ? (
-														<ArrowUpRight className='mr-1 h-4 w-4' />
-													) : (
-														<ArrowDownRight className='mr-1 h-4 w-4' />
-													)}
+														className={`flex items-center ${
+															organization.memberChange >=
+																0
+																	? "text-green-400 border-green-400"
+																	: "text-red-400 border-red-400"
+															}`}>
+													{organization.memberChange >=
+														0 ? (
+															<ArrowUpRight className='mr-1 h-4 w-4' />
+														) : (
+															<ArrowDownRight className='mr-1 h-4 w-4' />
+														)}
 													{Math.abs(
-														organizationData.memberChange
+														organization.memberChange
 													)}
 													%
 												</Badge>
@@ -244,14 +260,14 @@ export function OrganizationOverview() {
 													</p>
 													<span className='text-sm font-medium text-purple-100'>
 														{
-															organizationData.memberActivity
+															organization.memberActivity
 														}
 														%
 													</span>
 												</div>
 												<Progress
 													value={
-														organizationData.memberActivity
+														organization.memberActivity
 													}
 													className='h-2 bg-purple-500/20'
 												/>
@@ -274,7 +290,7 @@ export function OrganizationOverview() {
 													</p>
 													<p className='text-2xl font-bold text-purple-100'>
 														{
-															organizationData.activeProposals
+															organization.activeProposals
 														}
 													</p>
 												</div>
@@ -283,7 +299,7 @@ export function OrganizationOverview() {
 														Total Votes Cast
 													</p>
 													<p className='text-2xl font-bold text-purple-100'>
-														2,450
+														{organization.totalVotes ? organization.totalVotes.toLocaleString() : 0}
 													</p>
 												</div>
 												<div className='bg-purple-500/10 p-4 rounded-lg'>
@@ -291,7 +307,7 @@ export function OrganizationOverview() {
 														Avg. Participation
 													</p>
 													<p className='text-2xl font-bold text-purple-100'>
-														72%
+														{organization.avgParticipation ? organization.avgParticipation.toFixed(2) : 0}%
 													</p>
 												</div>
 												<div className='bg-purple-500/10 p-4 rounded-lg'>
@@ -299,7 +315,7 @@ export function OrganizationOverview() {
 														Execution Rate
 													</p>
 													<p className='text-2xl font-bold text-purple-100'>
-														89%
+														{organization.executionRate ? organization.executionRate.toFixed(2) : 0}%
 													</p>
 												</div>
 											</div>
@@ -318,9 +334,9 @@ export function OrganizationOverview() {
 											</CardTitle>
 										</CardHeader>
 										<CardContent>
-											<ScrollArea className='h-[300px] pr-4'>
-												{organizationData.recentVotes.map(
-													(vote) => (
+											{organization.recentVotes ? <ScrollArea className='h-[300px] pr-4'>
+												{organization.recentVotes.map(
+													(vote: any) => (
 														<div
 															key={vote.id}
 															className='mb-4 last:mb-0'>
@@ -366,7 +382,7 @@ export function OrganizationOverview() {
 														</div>
 													)
 												)}
-											</ScrollArea>
+											</ScrollArea> : <p className='text-purple-300 text-center'>No recent votes</p>}
 										</CardContent>
 									</Card>
 
@@ -378,9 +394,9 @@ export function OrganizationOverview() {
 											</CardTitle>
 										</CardHeader>
 										<CardContent>
-											<ScrollArea className='h-[300px] pr-4'>
-												{organizationData.upcomingVotes.map(
-													(vote) => (
+											{organization.upcomingVotes ? <ScrollArea className='h-[300px] pr-4'>
+												{organization.upcomingVotes.map(
+													(vote: any) => (
 														<div
 															key={vote.id}
 															className='mb-4 last:mb-0'>
@@ -408,7 +424,7 @@ export function OrganizationOverview() {
 														</div>
 													)
 												)}
-											</ScrollArea>
+											</ScrollArea> : <p className='text-purple-300 text-center'>No upcoming votes</p>}
 										</CardContent>
 									</Card>
 								</div>
@@ -423,9 +439,9 @@ export function OrganizationOverview() {
 										</CardTitle>
 									</CardHeader>
 									<CardContent>
-										<ScrollArea className='h-[400px] pr-4'>
-											{organizationData.recentActivities.map(
-												(activity) => (
+										{organization.recentActivities ? <ScrollArea className='h-[400px] pr-4'>
+											{organization.recentActivities.map(
+												(activity: any) => (
 													<div
 														key={activity.id}
 														className='mb-4 last:mb-0'>
@@ -459,7 +475,7 @@ export function OrganizationOverview() {
 													</div>
 												)
 											)}
-										</ScrollArea>
+										</ScrollArea> : <p className='text-purple-300 text-center'>No activities yet</p>}
 									</CardContent>
 								</Card>
 							</TabsContent>

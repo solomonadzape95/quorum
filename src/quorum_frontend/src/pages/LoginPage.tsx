@@ -15,16 +15,16 @@ function LoginPage() {
     const APP_LOGO = "/Images/quorum_mobile.png";
     const CONFIG_QUERY = `?applicationName=${APP_NAME}&applicationLogo=${APP_LOGO}`;
 
-	useEffect(() => {
-		async function checkAuth() {
-			if (globals.isAuthenticated) {
-				const from = location.state?.from?.pathname || "/onboarding";
-				navigate('/dashboard/overview', { replace: true });
-			}
+useEffect(() => {
+	async function checkAuth() {
+		if (globals.isAuthenticated) {
+			const from = location.state?.from?.pathname || "/onboarding";
+			navigate('/dashboard/overview', { replace: true });
 		}
+	}
 
-		checkAuth();
-	}, [globals.isAuthenticated, navigate, location]);
+	checkAuth();
+}, [globals.isAuthenticated, navigate, location]);
 
 	async function handleSuccess() {
 		if (authClient) {

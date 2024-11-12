@@ -1,5 +1,3 @@
-;
-
 import { useState, useEffect, ChangeEvent, FormEvent } from "react";
 import {
   Card,
@@ -26,6 +24,8 @@ import {
   PopoverContent,
   PopoverTrigger,
 } from "@/components/ui/popover";
+import { useNavigate, useParams } from "react-router-dom";
+import { quorum_backend } from "../../../../declarations/quorum_backend";
 
 // Define types for form data and errors
 interface Candidate {
@@ -47,6 +47,7 @@ interface Errors {
   description?: string;
   startDate?: string;
   endDate?: string;
+  form?: string;
   candidates?: Array<{
     name?: string;
     mandate?: string;
@@ -54,7 +55,11 @@ interface Errors {
   }>;
 }
 
-export default function ElectionCreationForm() {
+type ElectionCreationFormProps = {
+  onSubmit: (formData: any) => Promise<void>;
+};
+
+const ElectionCreationForm = ({ onSubmit }: ElectionCreationFormProps) => {
   const [step, setStep] = useState<number>(1);
   const [formData, setFormData] = useState<FormData>({
     name: "",
@@ -67,6 +72,9 @@ export default function ElectionCreationForm() {
     ],
   });
   const [errors, setErrors] = useState<Errors>({});
+  const navigate = useNavigate();
+  const { orgid } = useParams();
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Enable dark mode
   useEffect(() => {
@@ -210,12 +218,38 @@ export default function ElectionCreationForm() {
     if (step > 1) setStep((prev) => prev - 1);
   };
 
-  const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
-    // Here you would typically send the form data to your backend
-    console.log("Form submitted:", formData);
-    // For demonstration, we'll just show an alert
-    alert("Election created successfully!");
+    
+    // Basic validation
+    if (!formData.name || !formData.description || !formData.startDate || !formData.endDate) {
+        setErrors({ ...errors, form: "Please fill in all required fields" });
+        return;
+    }
+
+    if (formData.candidates.length < 2) {
+        setErrors({ ...errors, form: "At least two candidates are required" });
+        return;
+    }
+
+    try {
+        await onSubmit(formData);
+        // Reset form or show success message
+        setFormData({
+            name: "",
+            description: "",
+            startDate: null,
+            endDate: null,
+            candidates: [
+                { name: "", mandate: "", profilePicture: null },
+                { name: "", mandate: "", profilePicture: null }
+            ]
+        });
+        setStep(1);
+    } catch (error) {
+        console.error("Error submitting form:", error);
+        setErrors({ ...errors, form: "Failed to create election" });
+    }
   };
 
   const isStepValid = () => {
@@ -245,6 +279,52 @@ export default function ElectionCreationForm() {
         return true; // Review step is always valid if we've made it this far
       default:
         return false;
+    }
+  };
+
+  const handleElectionCreationSubmit = async (formData: any) => {
+    try {
+      setIsSubmitting(true);
+      
+      // Transform candidates into the format expected by the backend
+      const contestants = formData.candidates.map((candidate: any, index: number) => ({
+        contestantId: `${index + 1}`,
+        name: candidate.name,
+        description: candidate.mandate,
+        tally: 0
+      }));
+
+      // Generate a unique election ID
+      const electionId = `${orgid}_${Date.now()}`;
+
+      // Create the election
+      const success = await quorum_backend.createElec(
+        electionId,
+        formData.description,
+        contestants,
+        formData.startDate.toISOString(),
+        formData.endDate.toISOString()
+      );
+
+      if (success) {
+        // Update the organization's electionConducted array
+        await quorum_backend.updateOrgan(
+          orgid!,
+          [],
+          [],
+          [],
+          [electionId] as any,
+          [],
+          
+        );
+
+        // Navigate to the voting page with the election data
+        navigate(`/dashboard/organizations/${orgid}/voting/${electionId}`);
+      }
+    } catch (error) {
+      console.error("Error creating election:", error);
+    } finally {
+      setIsSubmitting(false);
     }
   };
 
@@ -598,6 +678,9 @@ export default function ElectionCreationForm() {
               type="submit"
               disabled={!isStepValid()}
               className="bg-purple-500 hover:bg-purple-600 text-white"
+              onClick={() => {
+                navigate(`/dashboard/organizations/${location.pathname.split('/')[3]}/voting/`);
+              }}
             >
               Create Election
             </Button>
@@ -606,4 +689,6 @@ export default function ElectionCreationForm() {
       </Card>
     </div>
   );
-}
+};
+
+export default ElectionCreationForm;

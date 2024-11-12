@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import confetti from "canvas-confetti";
 import { Bar, BarChart, ResponsiveContainer, XAxis, YAxis } from "recharts";
 import {
@@ -21,6 +21,8 @@ import {
 } from "@/components/ui/card";
 import { ChartContainer, ChartTooltip } from "@/components/ui/chart";
 import { type ChartConfig } from "@/components/ui/chart";
+import { useParams } from "react-router-dom";
+import { quorum_backend } from "../../../declarations/quorum_backend";
 
 const chartConfig = {
 	desktop: {
@@ -32,70 +34,135 @@ const chartConfig = {
 		color: "#60a5fa",
 	},
 } satisfies ChartConfig;
-interface Candidate {
-	id: number;
-	name: string;
-	mandate: string;
-	image: string;
-	votes: number;
-}
 
-const candidates: Candidate[] = [
-	{
-		id: 1,
-		name: "Alex Thompson",
-		mandate: "Transparency & Innovation",
-		image: "/placeholder.svg?height=100&width=100",
-		votes: 145,
-	},
-	{
-		id: 2,
-		name: "Sarah Chen",
-		mandate: "Community Growth",
-		image: "/placeholder.svg?height=100&width=100",
-		votes: 132,
-	},
-	{
-		id: 3,
-		name: "Marcus Rodriguez",
-		mandate: "Technical Development",
-		image: "/placeholder.svg?height=100&width=100",
-		votes: 97,
-	},
-];
+// Add this mock data near the top of the file, after the imports
+const mockElection = {
+	description: "Mock Election 2024",
+	endDate: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(), // 24 hours from now
+	contestants: [
+		{
+			contestantId: "1",
+			name: "John",
+			description: "Candidate 1",
+			tally: 0
+		},
+		{
+			contestantId: "2",
+			name: "Jane",
+			description: "Candidate 2",
+			tally: 0
+		}
+	]
+};
 
 export default function ElectionView() {
+	const { orgid, electionId } = useParams();
+	const [election, setElection] = useState<any>(null);
 	const [showResults, setShowResults] = useState(false);
-	const [selectedCandidate, setSelectedCandidate] =
-		useState<Candidate | null>(null);
+	const [selectedCandidate, setSelectedCandidate] = useState<any>(null);
 	const [hasVoted, setHasVoted] = useState(false);
-	const [timeLeft, setTimeLeft] = useState("23:45:30");
+	const [isLoading, setIsLoading] = useState(true);
+	const [timeLeft, setTimeLeft] = useState("");
 
-	const handleVote = (candidate: Candidate) => {
+	useEffect(() => {
+		fetchElectionDetails();
+	}, [electionId]);
+
+	const fetchElectionDetails = async () => {
+		try {
+			setIsLoading(true);
+			// Comment out the actual backend call and use mock data instead
+			// const electionData : any = await quorum_backend.getElec(electionId!);
+			const electionData = mockElection;
+			setElection(electionData);
+			
+			// Calculate time remaining
+			const endDate = new Date(electionData.endDate);
+			const now = new Date();
+			const diff = endDate.getTime() - now.getTime();
+			
+			// Format time remaining
+			const hours = Math.floor(diff / (1000 * 60 * 60));
+			const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+			const seconds = Math.floor((diff % (1000 * 60)) / 1000);
+			
+			setTimeLeft(`${hours}:${minutes}:${seconds}`);
+		} catch (error) {
+			console.error("Error fetching election:", error);
+		} finally {
+			setIsLoading(false);
+		}
+	};
+
+	const handleVote = (candidate: any) => {
 		setSelectedCandidate(candidate);
 	};
 
 	const confirmVote = async () => {
-		setHasVoted(true);
-		setSelectedCandidate(null);
+		try {
+			if (!selectedCandidate) return;
 
-		// Trigger confetti animation
-		confetti({
-			particleCount: 100,
-			spread: 70,
-			origin: { y: 0.6 },
-		});
+			// Comment out the backend call and handle mock data update
+			// const success = await quorum_backend.vote(electionId!, selectedCandidate.contestantId);
+			const success = true; // Mock successful vote
+
+			if (success) {
+				setHasVoted(true);
+				setSelectedCandidate(null);
+				
+				// Update the election state directly with the new vote count
+				setElection((prevElection: any) => ({
+					...prevElection,
+					contestants: prevElection.contestants.map((contestant: any) =>
+						contestant.contestantId === selectedCandidate.contestantId
+							? { ...contestant, tally: contestant.tally + 1 }
+							: contestant
+					)
+				}));
+
+				// Trigger confetti animation
+				confetti({
+					particleCount: 100,
+					spread: 70,
+					origin: { y: 0.6 },
+				});
+			}
+		} catch (error) {
+			console.error("Error voting:", error);
+		}
 	};
+
+	if (isLoading) {
+		return (
+			<div className="flex justify-center items-center min-h-screen">
+				<div className="animate-spin text-purple-500">Loading...</div>
+			</div>
+		);
+	}
+
+	if (!election) {
+		return (
+			<div className="text-center text-red-400 p-8">
+				Election not found
+			</div>
+		);
+	}
+
+	// Transform contestants data for the chart
+	const chartData = election.contestants.map((contestant: any) => ({
+		name: contestant.name,
+		votes: contestant.tally
+	}));
 
 	return (
 		<div className='min-h-screen bg-[#0F0A1F] text-white p-6'>
 			<div className='max-w-4xl mx-auto space-y-8'>
 				<div className='text-center space-y-4'>
 					<h1 className='text-4xl font-bold'>
-						Council Member Election
+						{election.description}
 					</h1>
 					<p className='text-gray-400'>
-						Vote for the next council member to represent our DAO
+						Vote for your preferred candidate
 					</p>
 					<div className='inline-block bg-purple-900/50 px-4 py-2 rounded-lg'>
 						<span className='text-purple-300'>
@@ -106,28 +173,29 @@ export default function ElectionView() {
 				</div>
 
 				<div className='grid md:grid-cols-3 gap-6'>
-					{candidates.map((candidate) => (
+					{election.contestants.map((contestant: any) => (
 						<Card
-							key={candidate.id}
+							key={contestant.contestantId}
 							className='bg-purple-900/20 border-purple-500/20 hover:border-purple-500/40 transition-all cursor-pointer'
-							onClick={() => handleVote(candidate)}>
+							onClick={() => handleVote(contestant)}>
 							<CardHeader className='text-center'>
 								<div className='mx-auto w-24 h-24 rounded-full overflow-hidden mb-4'>
 									<img
-										src={candidate.image}
-										alt={candidate.name}
+										src={`https://avatar.vercel.sh/${contestant.name}.png`}
+										alt={contestant.name}
 										className='w-full h-full object-cover'
 									/>
 								</div>
-								<CardTitle>{candidate.name}</CardTitle>
+								<CardTitle>{contestant.name}</CardTitle>
 								<CardDescription className='text-purple-300'>
-									{candidate.mandate}
+									{contestant.description}
 								</CardDescription>
 							</CardHeader>
 							<CardContent>
 								<Button
 									className='w-full bg-purple-600 hover:bg-purple-700'
-									variant='secondary'>
+									variant='secondary'
+									disabled={hasVoted}>
 									Vote
 								</Button>
 							</CardContent>
@@ -155,17 +223,12 @@ export default function ElectionView() {
 							<ChartContainer
 								className='h-[300px]'
 								config={chartConfig}>
-								<ResponsiveContainer
-									width='100%'
-									height='100%'>
-									<BarChart data={candidates}>
+								<ResponsiveContainer width='100%' height='100%'>
+									<BarChart data={chartData}>
 										<XAxis dataKey='name' />
 										<YAxis />
 										<ChartTooltip />
-										<Bar
-											dataKey='votes'
-											fill='#8A3FFC'
-										/>
+										<Bar dataKey='votes' fill='#8A3FFC' />
 									</BarChart>
 								</ResponsiveContainer>
 							</ChartContainer>

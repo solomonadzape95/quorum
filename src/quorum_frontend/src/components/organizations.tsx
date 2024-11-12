@@ -30,8 +30,8 @@ import { useAppContext } from "@/contexts/AppContext";
 import { Organization } from "@/types";
 import { Avatar, AvatarImage, AvatarFallback } from "@radix-ui/react-avatar";
 import { quorum_backend } from "../../../declarations/quorum_backend";
-import { organizationService,userService } from "@/services/dbService"; 
 import JoinOrgModal from "@/components/joinOrg";
+import { useNavigate } from "react-router-dom";
 
 // Mock data for user's organizations (empty array to simulate no organizations initially)
 const initialOrganizations: Organization[] = [];
@@ -80,7 +80,7 @@ interface ModalComponentProps {
 const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen, onClose, fetchOrganizations}) => {
   const { globals } = useAppContext();
 
-  const handleCreateOrg = async (name: string, description: string, admins: string[]) => {
+  const handleCreateOrg = async (name: string, description: string, admins: string[], pfp: string) => {
     try {
       console.log("Creating organization:", name, description, admins);
       
@@ -91,7 +91,8 @@ const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen, onClose, fetchO
         description,    // description
         admins,        // members (initially just admins)
         [],            // electionConducted (empty initially)
-        admins         // admins
+        admins,        // admins
+        pfp            // pfp
       );
 
       if (success && globals.principal) {
@@ -124,7 +125,7 @@ const ModalComponent: React.FC<ModalComponentProps> = ({ isOpen, onClose, fetchO
       <div className="fixed top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-full h-screen backdrop-blur-sm bg-black/50 flex items-center justify-center -z-50" onClick={onClose}/>
       <div className="rounded-lg p-6 w-full max-w-md bg-[#0F0B15] border-purple-500/20 shadow-lg shadow-purple-500/10">
         <OrganizationCreationForm
-          onSubmit={(name, description, admins) => handleCreateOrg(name, description, admins)}
+          onSubmit={(name :string, description : string, admins : any, pfp: string) => handleCreateOrg(name, description, admins, pfp)}
           onClose={onClose}
         />
       </div>
@@ -293,20 +294,20 @@ const DEMO_ORGANIZATIONS = [
   const [isJoinModalOpen, setIsJoinModalOpen] = useState<boolean>(false);
   const { globals } = useAppContext();
   const [visibleOrgCount, setVisibleOrgCount] = useState(3);
+  const navigate = useNavigate();
 
   const fetchOrganizations = async () => {
     try {
       setIsLoading(true);
 
-      // Get user's organizations
       if (globals.principal) {
-         const user = await quorum_backend.getUser(globals.principal);
-         if (user[0]) {
-            console.log(user[0].organizations)
-          // Fetch full details for each organization
+        const user = await quorum_backend.getUser(globals.principal);
+        if (user[0]) {
+          setUser(user[0])
+          console.log(user[0].organizations)
+          
           const allUserOrgs = await Promise.all(user[0].organizations.map(async (orgName: string) => {
             const orgDataArray = await quorum_backend.getOrgan(orgName);
-            // Map through all organizations in the array
             return orgDataArray.map((org: any) => ({
               name: org.name,
               description: org.description,
@@ -320,33 +321,15 @@ const DEMO_ORGANIZATIONS = [
               memberActivity: 0,
               treasuryChange: 0,
               memberChange: 0,
-              pfp: "https://picsum.photos/200"
+              pfp: org.pfp || "https://picsum.photos/200"
             }));
           }));
 
-          // Flatten the array since Promise.all will return array of arrays
           const flattenedOrgs = allUserOrgs.flat();
           console.log(flattenedOrgs)
           setUserOrganizations(flattenedOrgs);
         }
 
-        // Get all public organizations for discovery
-        // const allOrgsData = await Promise.all(
-        //   DEMO_ORGANIZATIONS.map(async (org) => {
-        //     const orgData:any = await quorum_backend.getOrgan(org.name);
-        //     if (orgData && orgData.isPublic) {
-        //       return {
-        //         ...org,
-        //         members: orgData.members || [],
-        //         electionConducted: orgData.electionConducted || 0,
-        //         admins: orgData.admins || []
-        //       };
-        //     }
-        //     return null;
-        //   })
-        // );
-
-        // const publicOrgs = allOrgsData.filter(org => org !== null);
         setDiscoveredOrgs(DEMO_ORGANIZATIONS);
       }
     } catch (error) {
@@ -359,55 +342,78 @@ const DEMO_ORGANIZATIONS = [
   useEffect(() => {
     fetchOrganizations();
   }, [globals.principal]);
+  const OrganizationCard = ({ org }: { org: Organization }) => {
+    const { globals } = useAppContext();
+    
+    
 
-  const getUser = async () => {
-    const user = await userService.getUserById(globals.principal || '');
-    console.log(user)
-    setUser(user);
+    const roleColor = {
+      Admin: "bg-red-500/20 text-red-300 hover:bg-red-500/30",
+      Member: "bg-green-500/20 text-green-300 hover:bg-green-500/30"
+    };
+
+    const navigate = useNavigate();
+
+    const handleViewDetails = () => {
+      // Replace spaces with + in org name for URL
+      const urlSafeOrgName = org.name.replace(/\s+/g, '+');
+      navigate(`/dashboard/organizations/${urlSafeOrgName}`);
+    };
+
+    return (
+      <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10">
+        <CardHeader>
+          <CardTitle className="text-2xl flex items-center justify-between text-purple-100">
+            <span className="flex items-center">
+              <Avatar className="w-10 h-10 rounded-full overflow-hidden mr-2">
+                <AvatarImage src={org.pfp} className="object-cover" />
+              </Avatar>
+              {org.name}
+            </span>
+            <div className="flex gap-2">
+              {user && user.organizations.includes(org.name) ? ( 
+                <Badge className={roleColor.Admin}>
+                  Admin
+                </Badge>
+              ) : (
+                <Badge className={roleColor.Member}>
+                  Member
+                </Badge>
+              )}
+              <Badge className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30">
+                {org.activeProposals} Active Proposals
+              </Badge>
+            </div>
+          </CardTitle>
+          <CardDescription className="text-purple-300 mt-2">
+            {org.description}
+          </CardDescription>
+        </CardHeader>
+        
+        <CardContent className="space-y-4">
+          <div className="flex items-center justify-between text-sm text-purple-300">
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              <span>{org.memberCount ? org.memberCount.toLocaleString() : '0'} members</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Coins className="h-4 w-4" />
+              <span>${org.treasury ? (org.treasury / 1000).toFixed(1) : '0'}k treasury</span>
+            </div>
+          </div>
+        </CardContent>
+
+        <CardFooter>
+          <Button 
+            className="w-full bg-purple-500 hover:bg-purple-600 text-white"
+            onClick={handleViewDetails}
+          >
+            View Details
+          </Button>
+        </CardFooter>
+      </Card>
+    );
   };
-
-  getUser();
-
-  const OrganizationCard = ({ org }: { org: Organization }) => (
-    <Card className="bg-black/40 border-purple-500/20 shadow-lg shadow-purple-500/10">
-      <CardHeader>
-        <CardTitle className="text-2xl flex items-center justify-between text-purple-100">
-          <span className="flex items-center">
-            <Avatar className="w-10 h-10 rounded-full overflow-hidden mr-2">
-              <AvatarImage src={org.pfp} className="object-cover" />
-              {/* <AvatarFallback>{org.name.charAt(0)}</AvatarFallback> */}
-            </Avatar>
-            {org.name}
-          </span>
-          <Badge className="bg-purple-500/20 text-purple-300 hover:bg-purple-500/30">
-            {org.activeProposals} Active Proposals
-          </Badge>
-        </CardTitle>
-        <CardDescription className="text-purple-300 mt-2">
-          {org.description}
-        </CardDescription>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        <div className="flex items-center justify-between text-sm text-purple-300">
-          <div className="flex items-center gap-2">
-            <Users className="h-4 w-4" />
-            <span>{org.memberCount ? org.memberCount.toLocaleString() : '0'} members</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <Coins className="h-4 w-4" />
-            <span>${org.treasury ? (org.treasury / 1000).toFixed(1) : '0'}k treasury</span>
-          </div>
-        </div>
-      </CardContent>
-
-      <CardFooter>
-        <Button className="w-full bg-purple-500 hover:bg-purple-600 text-white">
-          View Details
-        </Button>
-      </CardFooter>
-    </Card>
-  );
 
   return (
     <div className="min-h-screen bg-[#0F0B15] bg-grid-small-white/[0.2] relative">
@@ -442,8 +448,8 @@ const DEMO_ORGANIZATIONS = [
             <>
               {userOrganizations.length > 0 ? (
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                  {userOrganizations.map((org:any) => (
-                    <OrganizationCard key={org.id} org={org} />
+                  {userOrganizations.map((org:any,i:number) => (
+                    <OrganizationCard key={i} org={org} />
                   ))}
                 </div>
               ) : (

@@ -14,8 +14,11 @@ import {
 	SidebarMenuSub,
 	SidebarMenuSubButton,
 	SidebarMenuSubItem,
+    useSidebar,
 } from "@/components/ui/sidebar";
 import { NavLink } from "react-router-dom";
+import { useAppContext } from "@/contexts/AppContext";
+import { useEffect, useState } from "react";
 
 export function NavMain({
 	items,
@@ -27,6 +30,12 @@ export function NavMain({
 		isActive?: boolean;
 	}[];
 }) {
+    const { globals } = useAppContext();
+    const [view, setView] = useState<"user" | "org">(globals.view);
+    const {teamId} = useSidebar();
+    useEffect(() => {
+        setView(globals.view);
+    }, [globals.view]);
 	return (
 		<SidebarGroup>
 			<SidebarMenu>
@@ -41,7 +50,10 @@ export function NavMain({
 								tooltip={item.title}
 								className=' hover:bg-[#6c49c4] active:bg-[#6c49c4] px-4'>
 								<NavLink
-									to={item.url}
+									to={view === "user" 
+										? item.url 
+										: `/dashboard/organizations/${teamId}${item.url.startsWith('/') ? item.url : `/${item.url}`}`
+									}
 									className='flex items-center gap-2 w-full'>
 									<span className='flex items-center justify-center size-6'>
 										{item.icon && <item.icon />}

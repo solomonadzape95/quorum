@@ -33,6 +33,8 @@ type SidebarContext = {
 	openMobile: boolean;
 	setOpenMobile: (open: boolean) => void;
 	isMobile: boolean;
+	teamId: string;
+	setTeamId: (id: string) => void;
 	toggleSidebar: () => void;
 };
 
@@ -69,6 +71,7 @@ const SidebarProvider = React.forwardRef<
 	) => {
 		const isMobile = useIsMobile();
 		const [openMobile, setOpenMobile] = React.useState(false);
+		const [teamId, setTeamId] = React.useState("user");
 
 		// This is the internal state of the sidebar.
 		// We use openProp and setOpenProp for control from outside the component.
@@ -125,6 +128,8 @@ const SidebarProvider = React.forwardRef<
 				isMobile,
 				openMobile,
 				setOpenMobile,
+				teamId,
+				setTeamId,
 				toggleSidebar,
 			}),
 			[
@@ -134,6 +139,7 @@ const SidebarProvider = React.forwardRef<
 				isMobile,
 				openMobile,
 				setOpenMobile,
+				teamId,
 				toggleSidebar,
 			]
 		);
